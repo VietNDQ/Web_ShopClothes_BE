@@ -31,7 +31,6 @@ Route::post('/admin/san-pham/update',[SanPhamShopController::class,'update']);
 Route::post('/admin/san-pham/delete',[SanPhamShopController::class,'destroy']);
 Route::post('/admin/san-pham/search',[SanPhamShopController::class,'search']);
 Route::post('/admin/san-pham/change-status',[SanPhamShopController::class,'changeStatus']);
-Route::get('/admin/san-pham/getjoin',[SanPhamShopController::class,'getJoin']);
 
 Route::post('/admin/bien-the-san-pham/create',[BienTheSanPhamController::class,'store']);
 Route::get('/admin/bien-the-san-pham/data',[BienTheSanPhamController::class,'getData']);

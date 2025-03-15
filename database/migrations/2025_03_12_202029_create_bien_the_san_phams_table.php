@@ -17,8 +17,6 @@ return new class extends Migration
             $table->string('kich_thuoc');
             $table->string('mau_sac');
             $table->string('chat_lieu');
-            $table->float('gia_nhap');
-            $table->float('gia_ban');
             $table->integer('so_luong_ton');
             $table->boolean('tinh_trang');
             $table->timestamps();

@@ -41,7 +41,6 @@ class SanPhamShopController extends Controller
             'ten_san_pham'   => $request->ten_san_pham,
             'slug_san_pham'  => $request->slug_san_pham,
             'gia_ban'        => $request->gia_ban,
-            'so_luong_ton'   => $request->so_luong_ton,
             'hinh_anh'       => $request->hinh_anh,
             'mo_ta'          => $request->mo_ta,
             'tinh_trang'     => $request->tinh_trang,
@@ -61,6 +60,8 @@ class SanPhamShopController extends Controller
             ->leftJoin('bien_the_san_phams', 'bien_the_san_phams.id_san_pham', '=', 'san_phams.id')
             ->select(
                 'san_phams.id',
+                'san_phams.id_thuong_hieu',
+                'san_phams.id_danh_muc',
                 'thuong_hieus.ten_thuong_hieu',
                 'danh_mucs.ten_danh_muc',
                 'san_phams.ten_san_pham',
@@ -68,18 +69,21 @@ class SanPhamShopController extends Controller
                 'san_phams.hinh_anh',
                 'san_phams.mo_ta',
                 'san_phams.tinh_trang',
+                'san_phams.gia_ban',
                 DB::raw('SUM(COALESCE(bien_the_san_phams.so_luong_ton, 0)) AS TONG_SL_TON'),
-                DB::raw('MAX(COALESCE(bien_the_san_phams.gia_ban, 0)) AS gia_ban')
             )
             ->groupBy(
                 'san_phams.id',
+                'san_phams.id_thuong_hieu',
+                'san_phams.id_danh_muc',
                 'thuong_hieus.ten_thuong_hieu',
                 'danh_mucs.ten_danh_muc',
                 'san_phams.ten_san_pham',
                 'san_phams.slug_san_pham',
                 'san_phams.hinh_anh',
                 'san_phams.mo_ta',
-                'san_phams.tinh_trang'
+                'san_phams.tinh_trang',
+                'san_phams.gia_ban',
             )
             ->get();
 
@@ -97,7 +101,6 @@ class SanPhamShopController extends Controller
             'ten_san_pham'   => $request->ten_san_pham,
             'slug_san_pham'  => $request->slug_san_pham,
             'gia_ban'        => $request->gia_ban,
-            'so_luong_ton'   => $request->so_luong_ton,
             'hinh_anh'       => $request->hinh_anh,
             'mo_ta'          => $request->mo_ta,
             'tinh_trang'     => $request->tinh_trang,

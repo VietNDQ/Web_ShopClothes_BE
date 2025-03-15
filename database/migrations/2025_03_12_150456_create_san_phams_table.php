@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('ten_san_pham');
             $table->string('slug_san_pham');
             $table->float('gia_ban');
-            $table->integer('so_luong_ton');
             $table->string('hinh_anh');
             $table->text('mo_ta');
             $table->boolean('tinh_trang');

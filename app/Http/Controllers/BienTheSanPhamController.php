@@ -27,22 +27,23 @@ class BienTheSanPhamController extends Controller
 
         return response()->json([
             'status'  => true,
-            'message' => 'Bạn đã cập nhật sản phẩm ' . $request->ten_san_pham . ' thành công'
+            'message' => 'Bạn đã đổi trạng thái biến ' . $request->ten_san_pham . ' thành công'
         ]);
     }
     public function search(Request $request)
     {
         $noi_dung = '%' . $request->noi_dung . '%';
 
-        $data = BienTheSanPham::where('kich_thuoc', 'like', $noi_dung)
+        $data = BienTheSanPham::join('san_phams', 'bien_the_san_phams.id_san_pham', 'san_phams.id')
+                                ->where('kich_thuoc', 'like', $noi_dung)
                                 ->orWhere('mau_sac', 'like', $noi_dung)
                                 ->orWhere('chat_lieu', 'like', $noi_dung)
+                                ->orWhere('san_phams.ten_san_pham', 'like', $noi_dung)
                                 ->get();
 
         return response()->json([
             'data' => $data
         ]);
-
     }
     public function destroy(Request $request)
     {
@@ -61,8 +62,6 @@ class BienTheSanPhamController extends Controller
             'kich_thuoc'        => $request->kich_thuoc,
             'mau_sac'           => $request->mau_sac,
             'chat_lieu'         => $request->chat_lieu,
-            'gia_nhap'          => $request->gia_nhap,
-            'gia_ban'           => $request->gia_ban,
             'so_luong_ton'      => $request->so_luong_ton,
             'tinh_trang'        => $request->tinh_trang,
         ]);
@@ -80,8 +79,6 @@ class BienTheSanPhamController extends Controller
             'kich_thuoc'        => $request->kich_thuoc,
             'mau_sac'           => $request->mau_sac,
             'chat_lieu'         => $request->chat_lieu,
-            'gia_nhap'          => $request->gia_nhap,
-            'gia_ban'           => $request->gia_ban,
             'so_luong_ton'      => $request->so_luong_ton,
             'tinh_trang'        => $request->tinh_trang,
         ]);
@@ -94,7 +91,13 @@ class BienTheSanPhamController extends Controller
 
     public function getData()
     {
-        $data = BienTheSanPham::get();
+        //         SELECT san_phams.ten_san_pham, bien_the_san_phams.kich_thuoc, bien_the_san_phams.mau_sac, bien_the_san_phams.chat_lieu, bien_the_san_phams.so_luong_ton, bien_the_san_phams.tinh_trang
+        // FROM bien_the_san_phams
+        // JOIN san_phams ON bien_the_san_phams.id_san_pham = san_phams.id
+        $data = BienTheSanPham::join('san_phams', 'bien_the_san_phams.id_san_pham', 'san_phams.id')
+                                ->select('bien_the_san_phams.id','bien_the_san_phams.id_san_pham','san_phams.ten_san_pham', 'bien_the_san_phams.kich_thuoc', 'bien_the_san_phams.mau_sac',
+                                'bien_the_san_phams.chat_lieu', 'bien_the_san_phams.so_luong_ton', 'bien_the_san_phams.tinh_trang')
+                                ->get();
 
         return response()->json([
             'data' => $data,
