@@ -1,0 +1,22 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class SanPham extends Model
+{
+    protected $table = 'san_phams';
+
+    protected $fillable = [
+        'id_thuong_hieu',
+        'id_danh_muc',
+        'ten_san_pham',
+        'slug_san_pham',
+        'gia_ban',
+        'so_luong_ton',
+        'hinh_anh',
+        'mo_ta',
+        'tinh_trang',
+    ];
+}
