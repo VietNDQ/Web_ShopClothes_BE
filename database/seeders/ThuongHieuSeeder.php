@@ -22,26 +22,31 @@ class ThuongHieuSeeder extends Seeder
             [
                 'ten_thuong_hieu' => 'Nike',
                 'mo_ta'           => 'Thương hiệu thể thao nổi tiếng chuyên cung cấp các sản phẩm giày, quần áo và phụ kiện thể thao.',
+                'tinh_trang'      => 1,
                 'created_at'      => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
             ],
             [
                 'ten_thuong_hieu' => 'Adidas',
                 'mo_ta'           => 'Một trong những thương hiệu thể thao hàng đầu, nổi bật với các sản phẩm giày, trang phục và dụng cụ thể thao.',
+                'tinh_trang'      => 1,
                 'created_at'      => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
             ],
             [
                 'ten_thuong_hieu' => 'Zara',
                 'mo_ta'           => 'Thương hiệu thời trang quốc tế với các bộ sưu tập mùa mới, thiết kế sang trọng và giá cả hợp lý.',
+                'tinh_trang'      => 1,
                 'created_at'      => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
             ],
             [
                 'ten_thuong_hieu' => 'H&M',
                 'mo_ta'           => 'H&M cung cấp các sản phẩm thời trang theo xu hướng, từ quần áo cho đến phụ kiện với giá cả phải chăng.',
+                'tinh_trang'      => 1,
                 'created_at'      => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
             ],
             [
                 'ten_thuong_hieu' => 'Uniqlo',
                 'mo_ta'           => 'Thương hiệu thời trang đến từ Nhật Bản, nổi tiếng với các thiết kế đơn giản, chất liệu thoải mái và dễ kết hợp.',
+                'tinh_trang'      => 1,
                 'created_at'      => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
             ]
         ]);

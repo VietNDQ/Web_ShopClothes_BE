@@ -10,6 +10,7 @@ class ThuongHieu extends Model
 
     protected $fillable = [
         'ten_thuong_hieu',
+        'tinh_trang',
         'mo_ta',
     ];
 }

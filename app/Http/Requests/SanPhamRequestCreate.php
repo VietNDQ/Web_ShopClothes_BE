@@ -26,7 +26,7 @@ class SanPhamRequestCreate extends FormRequest
             'id_danh_muc'           => 'required|exists:danh_mucs,id',
             'ten_san_pham'          => 'required|min:2|max:255',
             'slug_san_pham'         => 'required|min:2|max:255',
-            'gia_ban'               => 'required|numeric',
+            'gia_goc'               => 'required|numeric',
             'hinh_anh'              => 'required',
             'mo_ta'                 => 'required',
             'tinh_trang'            => 'required|boolean',
@@ -45,9 +45,9 @@ class SanPhamRequestCreate extends FormRequest
             'slug_san_pham.required'  => 'Vui lòng nhập slug sản phẩm',
             'slug_san_pham.min'       => 'Slug sản phẩm phải có ít nhất 2 ký tự',
             'slug_san_pham.max'       => 'Slug sản phẩm không được vượt quá 255 ký tự',
-            'gia_ban.required'        => 'Vui lòng nhập giá bán sản phẩm',
-            'gia_ban.numeric'         => 'Giá bán sản phẩm phải là số',
-           
+            'gia_goc.required'        => 'Vui lòng nhập giá bán sản phẩm',
+            'gia_goc.numeric'         => 'Giá bán sản phẩm phải là số',
+
             'hinh_anh.required'       => 'Vui lòng nhập hình ảnh sản phẩm',
             'mo_ta.required'          => 'Vui lòng nhập mô tả sản phẩm',
             'tinh_trang.required'     => 'Vui lòng chọn tình trạng sản phẩm',

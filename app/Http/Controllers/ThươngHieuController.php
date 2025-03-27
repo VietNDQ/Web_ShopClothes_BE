@@ -8,16 +8,48 @@ use Illuminate\Http\Request;
 
 class ThươngHieuController extends Controller
 {
+    public function getOpenData()
+    {
+        $data = ThuongHieu::where('tinh_trang',1)
+                            ->get();;
+        return response()->json([
+            'data'  => $data,
+        ]);
+
+    }
+    public function changeStatus(Request $request)
+    {
+        $thuongHieu = ThuongHieu::where('id', $request->id)->first();
+        if (!$thuongHieu) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Khách Hàng không tồn tại.'
+            ]);
+        }
+
+        if ($thuongHieu->tinh_trang == 1) {
+            $thuongHieu->tinh_trang = 0;
+        } else {
+            $thuongHieu->tinh_trang = 1;
+        }
+        $thuongHieu->save();
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Đã đổi trạng thái Thương Hiệu ' . $request->ten_thuong_hieu . ' thành công'
+        ]);
+    }
     public function store(ThươngHieuRequestCreate $request)
     {
         ThuongHieu::create([
             'ten_thuong_hieu'   =>$request->ten_thuong_hieu,
+            'tinh_trang'     =>$request->tinh_trang,
             'mo_ta'          =>$request->mo_ta,
         ]);
 
         return response()->json([
             'status' => 1,
-            'message'=> 'Thêm mới danh mục '.$request->ten_thuong_hieu.' thành công.'
+            'message'=> 'Thêm mới thương hiệu '.$request->ten_thuong_hieu.' thành công.'
         ]);
     }
 
@@ -34,12 +66,13 @@ class ThươngHieuController extends Controller
     {
         ThuongHieu::where('id', $request->id)->update([
             'ten_thuong_hieu'   =>$request->ten_thuong_hieu,
+            'tinh_trang'     =>$request->tinh_trang,
             'mo_ta'          =>$request->mo_ta,
         ]);
 
         return response()->json([
             'status' => 1,
-            'message'=> 'Cập nhập danh mục '.$request->ten_thuong_hieu.' thành công.'
+            'message'=> 'Cập nhập thương hiệu '.$request->ten_thuong_hieu.' thành công.'
         ]);
     }
 
@@ -49,7 +82,7 @@ class ThươngHieuController extends Controller
 
         return response()->json([
             'status'    =>  1,
-             'message'=> 'Xóa danh mục '.$request->ten_thuong_hieu.' thành công.'
+             'message'=> 'Xóa thương hiệu '.$request->ten_thuong_hieu.' thành công.'
         ]);
     }
 

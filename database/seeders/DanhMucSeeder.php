@@ -22,26 +22,31 @@ class DanhMucSeeder extends Seeder
         [
             'ten_danh_muc' => 'Áo Thun',
             'mo_ta'        => 'Các loại áo thun có thiết kế đơn giản, thoải mái, phù hợp cho các hoạt động thể thao và đời thường.',
+            'tinh_trang'      => 1,
             'created_at'   => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
         ],
         [
             'ten_danh_muc' => 'Quần Jeans',
             'mo_ta'        => 'Quần jeans với các kiểu dáng từ ôm sát đến rộng rãi, phù hợp cho cả nam và nữ, với chất liệu bền bỉ.',
+            'tinh_trang'      => 1,
             'created_at'   => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
         ],
         [
             'ten_danh_muc' => 'Áo Sơ Mi',
             'mo_ta'        => 'Áo sơ mi cho cả nam và nữ, thích hợp cho các dịp công sở hay trang phục hàng ngày.',
+            'tinh_trang'      => 1,
             'created_at'   => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
         ],
         [
             'ten_danh_muc' => 'Váy Dự Tiệc',
             'mo_ta'        => 'Váy thời trang, sang trọng, thích hợp cho các dịp tiệc tùng, sự kiện đặc biệt.',
+            'tinh_trang'      => 1,
             'created_at'   => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
         ],
         [
             'ten_danh_muc' => 'Áo Khoác',
             'mo_ta'        => 'Áo khoác mùa đông, áo khoác ngoài giúp giữ ấm và bảo vệ cơ thể khỏi thời tiết lạnh.',
+            'tinh_trang'      => 1,
             'created_at'   => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
         ]
     ]);

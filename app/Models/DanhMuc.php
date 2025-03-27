@@ -10,6 +10,7 @@ class DanhMuc extends Model
 
     protected $fillable = [
         'ten_danh_muc',
+        'tinh_trang',
         'mo_ta',
     ];
 }

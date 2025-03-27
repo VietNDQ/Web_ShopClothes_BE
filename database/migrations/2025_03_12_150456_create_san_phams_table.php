@@ -17,7 +17,7 @@ return new class extends Migration
             $table->integer('id_danh_muc');
             $table->string('ten_san_pham');
             $table->string('slug_san_pham');
-            $table->float('gia_ban');
+            $table->float('gia_goc');
             $table->string('hinh_anh');
             $table->text('mo_ta');
             $table->boolean('tinh_trang');

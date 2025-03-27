@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             ThuongHieuSeeder::class,
             SanPhamSeeder::class,
             BienTheSanPhamSeeder::class,
+            KhachHangSeeder::class,
         ]);
 
     }
