@@ -48,7 +48,25 @@ class DanhMucSeeder extends Seeder
             'mo_ta'        => 'Áo khoác mùa đông, áo khoác ngoài giúp giữ ấm và bảo vệ cơ thể khỏi thời tiết lạnh.',
             'tinh_trang'      => 1,
             'created_at'   => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
-        ]
+        ],
+        [
+            'ten_danh_muc' => 'Giày Thể Thao',
+            'mo_ta'        => 'Các loại giày thể thao với thiết kế thời trang, êm ái, phù hợp cho vận động và đi chơi hàng ngày.',
+            'tinh_trang'   => 1,
+            'created_at'   => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
+        ],
+        [
+            'ten_danh_muc' => 'Túi Xách',
+            'mo_ta'        => 'Túi xách thời trang, từ túi đeo chéo đến túi cầm tay, phù hợp với nhiều phong cách khác nhau.',
+            'tinh_trang'   => 1,
+            'created_at'   => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
+        ],
+        [
+            'ten_danh_muc' => 'Phụ Kiện Thời Trang',
+            'mo_ta'        => 'Các phụ kiện như đồng hồ, kính mát, nón, dây chuyền giúp hoàn thiện phong cách thời trang.',
+            'tinh_trang'   => 1,
+            'created_at'   => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
+        ],
     ]);
 }
 

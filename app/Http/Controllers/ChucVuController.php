@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class DiaChiController extends Controller
+class ChucVuController extends Controller
 {
     //
 }

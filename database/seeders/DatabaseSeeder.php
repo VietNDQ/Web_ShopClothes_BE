@@ -2,7 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\ChucVu;
 use App\Models\DanhMuc;
+use App\Models\HinhAnhSanPham;
+use App\Models\NhanVien;
 use App\Models\ThuongHieu;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -21,6 +24,9 @@ class DatabaseSeeder extends Seeder
             SanPhamSeeder::class,
             BienTheSanPhamSeeder::class,
             KhachHangSeeder::class,
+            HinhAnhSanPhamSeeder::class,
+            ChucVuSeeder::class,
+            NhanVienSeeder::class,
         ]);
 
     }

@@ -48,7 +48,37 @@ class ThuongHieuSeeder extends Seeder
                 'mo_ta'           => 'Thương hiệu thời trang đến từ Nhật Bản, nổi tiếng với các thiết kế đơn giản, chất liệu thoải mái và dễ kết hợp.',
                 'tinh_trang'      => 1,
                 'created_at'      => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
-            ]
+            ],
+            [
+                'ten_thuong_hieu' => 'Puma',
+                'mo_ta'           => 'Thương hiệu thể thao nổi tiếng thế giới, chuyên cung cấp giày, quần áo và phụ kiện dành cho vận động viên.',
+                'tinh_trang'      => 1,
+                'created_at'      => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
+            ],
+            [
+                'ten_thuong_hieu' => 'Gucci',
+                'mo_ta'           => 'Thương hiệu thời trang cao cấp của Ý, nổi bật với các sản phẩm xa xỉ như túi xách, giày dép và trang phục.',
+                'tinh_trang'      => 1,
+                'created_at'      => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
+            ],
+            [
+                'ten_thuong_hieu' => 'Louis Vuitton',
+                'mo_ta'           => 'Một trong những thương hiệu thời trang đắt giá nhất thế giới, chuyên về túi xách, quần áo và phụ kiện cao cấp.',
+                'tinh_trang'      => 1,
+                'created_at'      => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
+            ],
+            [
+                'ten_thuong_hieu' => 'The North Face',
+                'mo_ta'           => 'Thương hiệu chuyên về trang phục và thiết bị dã ngoại, leo núi, nổi tiếng với áo khoác chống nước và balo du lịch.',
+                'tinh_trang'      => 1,
+                'created_at'      => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
+            ],
+            [
+                'ten_thuong_hieu' => 'New Balance',
+                'mo_ta'           => 'Hãng giày thể thao nổi tiếng với thiết kế êm ái, phù hợp cho cả tập luyện và thời trang hàng ngày.',
+                'tinh_trang'      => 1,
+                'created_at'      => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
+            ],
         ]);
 
     }

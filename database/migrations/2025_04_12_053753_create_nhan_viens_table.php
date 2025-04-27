@@ -11,17 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('dia_chi', function (Blueprint $table) {
+        Schema::create('nhan_viens', function (Blueprint $table) {
             $table->id();
+            $table->string('ho_va_ten');
+            $table->string('email');
+            $table->string('so_dien_thoai');
+            $table->string('password');
             $table->string('dia_chi');
-            $table->string('phuong_xa')->nullable();
-            $table->string('quan_huyen')->nullable();
-            $table->string('tinh_thanh_pho');
-            $table->string('ma_buu_chinh')->nullable();
-            $table->boolean('mac_dinh')->default(false);
+            $table->integer('tinh_trang');
+            $table->integer('id_chuc_vu')->nullable();
+            $table->integer('is_master')->default(0);
             $table->timestamps();
         });
-
     }
 
     /**
@@ -29,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('dia_chis');
+        Schema::dropIfExists('nhan_viens');
     }
 };

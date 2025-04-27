@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DiaChiKhachHang;
 use App\Models\KhachHang;
 use Illuminate\Http\Request;
 
@@ -32,12 +33,12 @@ class KhachHangController extends Controller
     public function store(Request $request)
     {
         KhachHang::create([
-            'ho_va_ten'         =>$request->ho_va_ten,
-            'email'             =>$request->email,
-            'password'          =>$request->password,
-            'so_dien_thoai'     =>$request->so_dien_thoai,
-            'ngay_sinh'         =>$request->ngay_sinh,
-            'hash_active'       =>$request->hash_active,
+            'ho_va_ten'         => $request->ho_va_ten,
+            'email'             => $request->email,
+            'password'          => $request->password,
+            'so_dien_thoai'     => $request->so_dien_thoai,
+            'ngay_sinh'         => $request->ngay_sinh,
+            'hash_active'       => $request->hash_active,
         ]);
 
         return response()->json([
@@ -55,17 +56,17 @@ class KhachHangController extends Controller
     public function update(Request $request)
     {
         KhachHang::where('id', $request->id)->update([
-            'ho_va_ten'         =>$request->ho_va_ten,
-            'email'             =>$request->email,
-            'password'          =>$request->password,
-            'so_dien_thoai'     =>$request->so_dien_thoai,
-            'ngay_sinh'         =>$request->ngay_sinh,
-            'hash_active'       =>$request->hash_active,
+            'ho_va_ten'         => $request->ho_va_ten,
+            'email'             => $request->email,
+            'password'          => $request->password,
+            'so_dien_thoai'     => $request->so_dien_thoai,
+            'ngay_sinh'         => $request->ngay_sinh,
+            'hash_active'       => $request->hash_active,
         ]);
 
         return response()->json([
             'status' => 1,
-            'message'=> 'Cập nhập Khách Hàng '.$request->ho_va_ten.' thành công.'
+            'message' => 'Cập nhập Khách Hàng ' . $request->ho_va_ten . ' thành công.'
         ]);
     }
 
@@ -75,7 +76,7 @@ class KhachHangController extends Controller
 
         return response()->json([
             'status'    =>  1,
-             'message'=> 'Xóa Khách Hàng '.$request->ho_va_ten.' thành công.'
+            'message' => 'Xóa Khách Hàng ' . $request->ho_va_ten . ' thành công.'
         ]);
     }
 
@@ -84,9 +85,9 @@ class KhachHangController extends Controller
         $noi_dung = '%' . $request->noi_dung . '%';
 
         $data = KhachHang::where('ho_va_ten', 'like', $noi_dung)
-                            ->orwhere('email', 'like', $noi_dung)
-                            ->orwhere('so_dien_thoai', 'like', $noi_dung)
-                            ->get();
+            ->orwhere('email', 'like', $noi_dung)
+            ->orwhere('so_dien_thoai', 'like', $noi_dung)
+            ->get();
 
         return response()->json([
             'data' => $data

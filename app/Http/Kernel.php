@@ -42,5 +42,6 @@ class Kernel extends HttpKernel
     protected $routeMiddleware = [
         // ...existing middleware...
         'cors' => \App\Http\Middleware\Cors::class,
+        'NhanVienMiddleware' => \App\Http\Middleware\NhanVienMiddleware::class,
     ];
 }

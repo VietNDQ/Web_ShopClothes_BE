@@ -16,7 +16,6 @@ class SanPham extends Model
         'gia_goc',
         'giam_gia',
         'so_luong_ton',
-        'hinh_anh',
         'mo_ta',
         'tinh_trang',
     ];

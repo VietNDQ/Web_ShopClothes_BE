@@ -20,7 +20,7 @@ return new class extends Migration
             $table->date('ngay_sinh');
             $table->integer('is_active')->default(0);
             $table->integer('is_block')->default(0);
-            $table->integer('type-account')->default(0);
+            $table->integer('type_account')->default(0);
             $table->string('content_block')->nullable();
             $table->string('hash_active')->nullable();
             $table->string('hash_reset')->nullable();
