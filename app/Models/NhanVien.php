@@ -15,6 +15,7 @@ class NhanVien extends Authenticatable
 
     protected $fillable = [
         'ho_va_ten',
+        'avatar',
         'email',
         'so_dien_thoai',
         'password',
@@ -23,4 +24,8 @@ class NhanVien extends Authenticatable
         'id_chuc_vu',
         'is_master',
     ];
+    public function chucVu()
+    {
+        return $this->belongsTo(ChucVu::class, 'id_chuc_vu', 'id');
+    }
 }

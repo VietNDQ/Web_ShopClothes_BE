@@ -20,6 +20,7 @@ class SanPhamShopController extends Controller
             ->select(
                 'san_phams.id',
                 'thuong_hieus.ten_thuong_hieu',
+                'danh_mucs.id as id_danh_muc',
                 'danh_mucs.ten_danh_muc',
                 'san_phams.ten_san_pham',
                 'san_phams.slug_san_pham',
@@ -34,6 +35,7 @@ class SanPhamShopController extends Controller
             ->groupBy(
                 'san_phams.id',
                 'thuong_hieus.ten_thuong_hieu',
+                'danh_mucs.id',
                 'danh_mucs.ten_danh_muc',
                 'san_phams.ten_san_pham',
                 'san_phams.slug_san_pham',
@@ -70,31 +72,34 @@ class SanPhamShopController extends Controller
         ]);
     }
 
-    public function cungDanhMuc($id)
+    public function cungDanhMuc(Request $request)
     {
-        $data = DB::table('san_phams')
+        $query = DB::table('san_phams')
             ->join('danh_mucs', 'danh_mucs.id', '=', 'san_phams.id_danh_muc')
             ->leftJoin('hinh_anh_san_phams', 'hinh_anh_san_phams.id_san_pham', '=', 'san_phams.id')
             ->select(
                 'san_phams.id',
                 'danh_mucs.ten_danh_muc',
                 'san_phams.ten_san_pham',
-                DB::raw('MIN(hinh_anh_san_phams.hinh_anh) AS hinh_anh'), // Use MIN to get one image per product
+                DB::raw('MIN(hinh_anh_san_phams.hinh_anh) AS hinh_anh'),
                 DB::raw('san_phams.gia_goc - (san_phams.gia_goc * san_phams.giam_gia / 100) AS gia_ban'),
                 'san_phams.gia_goc',
                 'san_phams.giam_gia'
             )
-            ->where('danh_mucs.id', $id)
-            ->where('san_phams.tinh_trang', 1)
-            ->where('san_phams.id', '!=', $id)
-            ->groupBy(
-                'san_phams.id',
-                'danh_mucs.ten_danh_muc',
-                'san_phams.ten_san_pham',
-                'san_phams.gia_goc',
-                'san_phams.giam_gia'
-            )
-            ->get();
+            ->where('danh_mucs.id', $request->id_danh_muc)
+            ->where('san_phams.tinh_trang', 1);
+
+        if ($request->has('id_san_pham')) {
+            $query->where('san_phams.id', '!=', $request->id_san_pham);
+        }
+
+        $data = $query->groupBy(
+            'san_phams.id',
+            'danh_mucs.ten_danh_muc',
+            'san_phams.ten_san_pham',
+            'san_phams.gia_goc',
+            'san_phams.giam_gia'
+        )->get();
 
         return response()->json([
             'status' => true,
@@ -112,21 +117,14 @@ class SanPhamShopController extends Controller
                 'message' => 'Sản phẩm không tồn tại.'
             ]);
         }
-        // // Tính tổng số lượng tồn của tất cả biến thể
-        // $tongSoLuongTon = BienTheSanPham::where('id_san_pham', $sanPham->id)->sum('so_luong_ton');
-        // // Nếu tổng số lượng tồn bằng 0, không cho phép đổi trạng thái
-        // if ($tongSoLuongTon == 0) {
-        //     return response()->json([
-        //         'status'  => false,
-        //         'message' => 'Không thể đổi trạng thái vì sản phẩm đã hết hàng.'
-        //     ]);
-        // }
-        // Đổi trạng thái sản phẩm
-        if ($sanPham->tinh_trang == 1) {
-            $sanPham->tinh_trang = 0;
-        } else {
-            $sanPham->tinh_trang = 1;
+        $soLuongBienThe = BienTheSanPham::where('id_san_pham', $sanPham->id)->count();
+        if ($soLuongBienThe == 0) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Sản phẩm không có biến thể. Không thể đổi trạng thái.'
+            ]);
         }
+        $sanPham->tinh_trang = $sanPham->tinh_trang == 1 ? 0 : 1;
         $sanPham->save();
 
         return response()->json([
@@ -135,24 +133,26 @@ class SanPhamShopController extends Controller
         ]);
     }
 
-    public function store(SanPhamRequestCreate $request)
+
+    public function store(Request $request)
     {
-        SanPham::create([
+        $sanPham = SanPham::create([
             'id_thuong_hieu' => $request->id_thuong_hieu,
-            'id_danh_muc'    => $request->id_danh_muc,
-            'ten_san_pham'   => $request->ten_san_pham,
-            'slug_san_pham'  => $request->slug_san_pham,
-            'gia_goc'        => $request->gia_goc,
-            'giam_gia'       => $request->giam_gia,
-            'mo_ta'          => $request->mo_ta,
-            'tinh_trang'     => $request->tinh_trang,
+            'id_danh_muc' => $request->id_danh_muc,
+            'ten_san_pham' => $request->ten_san_pham,
+            'slug_san_pham' => $request->slug_san_pham,
+            'gia_goc' => $request->gia_goc,
+            'mo_ta' => $request->mo_ta,
+            'tinh_trang' => $request->tinh_trang,
         ]);
 
+
         return response()->json([
-            'status'  => 1,
-            'message' => 'Thêm mới sản phẩm ' . $request->ten_san_pham . ' thành công.'
+            'status'  => true,
+            'message' => 'Thêm mới sản phẩm ' . $sanPham->ten_san_pham . ' thành công.'
         ]);
     }
+
 
     public function getOpenData()
     {
@@ -293,10 +293,9 @@ class SanPhamShopController extends Controller
 
     public function storeHinhAnh(Request $request)
     {
-        $id = $request->id;
 
-        HinhAnhSanPham::where('id_san_pham', $id)->create([
-            'id_san_pham' => $request->id_san_pham,
+        HinhAnhSanPham::create([
+            'id_san_pham' => $request->id,
             'hinh_anh'    => $request->hinh_anh,
         ]);
         return response()->json([
@@ -306,9 +305,9 @@ class SanPhamShopController extends Controller
     }
     public function getHinhAnh()
     {
-        $data = SanPham::join('hinh_anh_san_phams', 'san_phams.id', 'hinh_anh_san_phams.id_san_pham')
-            ->select('hinh_anh_san_phams.id_san_pham', 'san_phams.ten_san_pham')
-            ->groupBy('hinh_anh_san_phams.id_san_pham', 'san_phams.ten_san_pham')
+        $check = SanPham::where('tinh_trang', 1);
+        $data = SanPham::select('san_phams.id', 'san_phams.ten_san_pham')
+            ->groupBy('san_phams.id', 'san_phams.ten_san_pham')
             ->get();
 
         return response()->json([

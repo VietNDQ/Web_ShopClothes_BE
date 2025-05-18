@@ -5,17 +5,51 @@ namespace App\Http\Controllers;
 use App\Models\NhanVien;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 
 class NhanVienController extends Controller
 {
-    public function checkToken(Request $request)
+    public function logOut()
+    {
+        $user = Auth::guard('sanctum')->user();
+
+        if ($user && $user instanceof \App\Models\NhanVien) {
+            $currentToken = $user->currentAccessToken();
+
+            if ($currentToken) {
+                DB::table('personal_access_tokens')
+                    ->where('id', $currentToken->id)
+                    ->delete();
+
+                return response()->json([
+                    'status'  => true,
+                    'message' => "Đăng xuất thành công",
+                ]);
+            } else {
+                return response()->json([
+                    'status'  => false,
+                    'message' => "Không tìm thấy token hiện tại.",
+                ]);
+            }
+        } else {
+            return response()->json([
+                'status'  => false,
+                'message' => "Có lỗi xảy ra hoặc người dùng không hợp lệ.",
+            ]);
+        }
+    }
+
+    public function checkToken()
     {
         $user_login = Auth::guard('sanctum')->user();
-        if($user_login){
+        if ($user_login) {
             return response()->json([
                 'status' => 1,
-                'ho_va_ten' => $user_login->ho_va_ten
+                'ho_va_ten' => $user_login->ho_va_ten,
+                'email' => $user_login->email,
+                'avatar' => $user_login->avatar,
+                'ten_chuc_vu' => $user_login->chucVu ? $user_login->chucVu->ten_chuc_vu : null,
             ]);
         } else {
             return response()->json([
@@ -24,6 +58,7 @@ class NhanVienController extends Controller
             ]);
         }
     }
+
     public function login(Request $request)
     {
         $check = NhanVien::where('email', $request->email)
@@ -31,18 +66,20 @@ class NhanVienController extends Controller
             ->first();
         if ($check) {
             return response()->json([
-                'status' => true,
+                'status' => 1,
                 'message' => 'Bạn đã đăng nhập thành công',
-                'token'  => $check->createToken('token_nhan_vien')->plainTextToken,
-                'name'=> $check->ho_va_ten
+                'token' => $check->createToken('token_nhan_vien')->plainTextToken,
+                'name' => $check->ho_va_ten,
+                'email' => $check->email,
             ]);
         } else {
             return response()->json([
-                'status' => false,
+                'status' => 0,
                 'message' => 'Tài khoản hoặc mật khẩu không đúng.'
             ]);
         }
     }
+
 
     public function changeStatus(Request $request)
     {
@@ -76,6 +113,7 @@ class NhanVienController extends Controller
         NhanVien::create([
             'ho_va_ten'         => $request->ho_va_ten,
             'email'             => $request->email,
+            'avatar'            => $request->avatar,
             'so_dien_thoai'     => $request->so_dien_thoai,
             'password'          => $request->password,
             'dia_chi'           => $request->dia_chi,
@@ -94,6 +132,7 @@ class NhanVienController extends Controller
             ->update([
                 'ho_va_ten'         => $request->ho_va_ten,
                 'email'             => $request->email,
+                'avatar'            => $request->avatar,
                 'so_dien_thoai'     => $request->so_dien_thoai,
                 'password'          => $request->password,
                 'dia_chi'           => $request->dia_chi,

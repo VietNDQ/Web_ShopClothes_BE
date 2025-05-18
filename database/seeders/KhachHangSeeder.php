@@ -20,8 +20,8 @@ class KhachHangSeeder extends Seeder
         DB::table('khach_hangs')->truncate();
         DB::table('khach_hangs')->insert([
             [
-                'ho_va_ten' => 'Nguyễn Văn A',
-                'email' => 'nguyenvana@example.com',
+                'ho_va_ten' => 'Nguyễn Quốc Việt',
+                'email' => 'nguyenquocviet@gmail.com',
                 'password' => '123456',
                 'so_dien_thoai' => '0912345678',
                 'ngay_sinh' => '1995-06-15',

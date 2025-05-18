@@ -12,4 +12,8 @@ class HinhAnhSanPham extends Model
         'id_san_pham',
         'hinh_anh',
     ];
+    public function sanPham()
+    {
+        return $this->belongsTo(SanPham::class, 'id_san_pham');
+    }
 }

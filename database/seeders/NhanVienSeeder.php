@@ -21,6 +21,7 @@ class NhanVienSeeder extends Seeder
             [
                 'ho_va_ten'     => 'Nguyễn Quốc Việt',
                 'email'         => 'nqv@gmail.com',
+                'avatar'        => 'https://jbagy.me/wp-content/uploads/2025/03/hinh-anh-avatar-anime-chibi-boy-3.jpg',
                 'so_dien_thoai' => '0382062172',
                 'password'      =>  '123456',
                 'dia_chi'       => '171 Cù Chính Lan, Quận Thanh Khê, TP. Đà Nẵng',
@@ -33,6 +34,7 @@ class NhanVienSeeder extends Seeder
             [
                 'ho_va_ten'     => 'Trần Minh Tú',
                 'email'         => 'tmtu@example.com',
+                'avatar'        => 'https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-avatar-anime-nu-cute-2.jpg',
                 'so_dien_thoai' => '0912345678',
                 'password'      =>  '123456',
                 'dia_chi'       => '25 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh',
@@ -45,6 +47,7 @@ class NhanVienSeeder extends Seeder
             [
                 'ho_va_ten'     => 'Lê Thị Hồng',
                 'email'         => 'lethihong@example.com',
+                'avatar'        => 'https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/hinh-anime-4.jpg',
                 'so_dien_thoai' => '0923456789',
                 'password'      =>  '123456',
                 'dia_chi'       => '12 Trần Phú, Quận Hải Châu, TP. Đà Nẵng',
@@ -57,6 +60,7 @@ class NhanVienSeeder extends Seeder
             [
                 'ho_va_ten'     => 'Phạm Văn Hòa',
                 'email'         => 'phamvanhoa@example.com',
+                'avatar'        => 'https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/hinh-anime-1.jpg',
                 'so_dien_thoai' => '0934567890',
                 'password'      =>  '123456',
                 'dia_chi'       => '56 Nguyễn Trãi, Quận Thanh Xuân, Hà Nội',
@@ -69,6 +73,7 @@ class NhanVienSeeder extends Seeder
             [
                 'ho_va_ten'     => 'Đỗ Thị Lan',
                 'email'         => 'dothilan@example.com',
+                'avatar'        => 'https://marketplace.canva.com/tWJ5k/MAGePytWJ5k/1/tl/canva-MAGePytWJ5k.jpg',
                 'so_dien_thoai' => '0945678901',
                 'password'      =>  '123456',
                 'dia_chi'       => '78 Lê Lợi, TP. Vinh, Nghệ An',
@@ -81,6 +86,7 @@ class NhanVienSeeder extends Seeder
             [
                 'ho_va_ten'     => 'Ngô Đức Anh',
                 'email'         => 'ngoducanh@example.com',
+                'avatar'        => 'https://tte.edu.vn/upload/2025/03/hinh-anh-anime-nezuko-cute-1.webp',
                 'so_dien_thoai' => '0956789012',
                 'password'      =>  '123456',
                 'dia_chi'       => '99 Bạch Đằng, TP. Đà Nẵng',

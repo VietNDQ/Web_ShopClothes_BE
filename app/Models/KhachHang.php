@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class KhachHang extends Model
+class KhachHang extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
+
     protected $table = 'khach_hangs';
 
     protected $fillable = [
@@ -20,9 +21,10 @@ class KhachHang extends Model
         'ngay_sinh',
         'is_active',
         'is_block',
-        'type-account',
+        'type_account',
         'content_block',
         'hash_active',
         'hash_reset',
     ];
 }
+

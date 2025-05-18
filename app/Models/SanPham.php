@@ -19,4 +19,8 @@ class SanPham extends Model
         'mo_ta',
         'tinh_trang',
     ];
+    public function hinhAnhSanPhams()
+    {
+        return $this->hasMany(HinhAnhSanPham::class, 'id_san_pham');
+    }
 }

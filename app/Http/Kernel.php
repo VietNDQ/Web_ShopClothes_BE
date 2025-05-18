@@ -43,5 +43,6 @@ class Kernel extends HttpKernel
         // ...existing middleware...
         'cors' => \App\Http\Middleware\Cors::class,
         'NhanVienMiddleware' => \App\Http\Middleware\NhanVienMiddleware::class,
+        'KhachHangMiddleware' => \App\Http\Middleware\CheckKhachHangMiddlware::class,
     ];
 }

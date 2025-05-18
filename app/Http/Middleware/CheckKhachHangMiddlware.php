@@ -3,11 +3,12 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
-use Illuminate\Support\Facades\Log;
-class NhanVienMiddleware
+
+class CheckKhachHangMiddlware
 {
     /**
      * Handle an incoming request.
@@ -16,18 +17,12 @@ class NhanVienMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $token = $request->bearerToken();
-        Log::info('Token received: ' . $token);
-
         $user = Auth::guard('sanctum')->user();
-        Log::info('User from guard: ' . ($user ? $user->id : 'null'));
-
-        if (!$user) {
-            return response()->json([
-                'message' => "Chưa xác thực - user null",
-            ], 401);
+        if($user && $user instanceof \App\Models\KhachHang){
+            return $next($request);
         }
-
-        return $next($request);
+        return response()->json([
+            'message' => 'Bạn cần đăng nhập để thực hiện chức năng này'
+        ], 401);
     }
 }
