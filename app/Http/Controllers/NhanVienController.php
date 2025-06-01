@@ -42,20 +42,20 @@ class NhanVienController extends Controller
 
     public function checkToken()
     {
-        $user_login = Auth::guard('sanctum')->user();
-        if ($user_login) {
+        $userLogin = Auth::guard('sanctum')->user();
+        if ($userLogin) {
             return response()->json([
-                'status' => 1,
-                'ho_va_ten' => $user_login->ho_va_ten,
-                'email' => $user_login->email,
-                'avatar' => $user_login->avatar,
-                'ten_chuc_vu' => $user_login->chucVu ? $user_login->chucVu->ten_chuc_vu : null,
+                'status'    => true,
+                'ho_va_ten'    => $userLogin->ho_va_ten,
+                'avatar'    => $userLogin->avatar,
+                'email'      => $userLogin->email,
+                'ten_chuc_vu' => $userLogin->chucVu ? $userLogin->chucVu->ten_chuc_vu : null,
             ]);
         } else {
             return response()->json([
-                'status' => 0,
-                'message' => 'Bạn cần đăng nhập hệ thống.'
-            ]);
+                'status'    => false,
+                'message'   => 'Token không hợp lệ'
+            ], 401);
         }
     }
 
@@ -69,8 +69,6 @@ class NhanVienController extends Controller
                 'status' => 1,
                 'message' => 'Bạn đã đăng nhập thành công',
                 'token' => $check->createToken('token_nhan_vien')->plainTextToken,
-                'name' => $check->ho_va_ten,
-                'email' => $check->email,
             ]);
         } else {
             return response()->json([

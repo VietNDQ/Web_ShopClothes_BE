@@ -79,6 +79,7 @@ class SanPhamShopController extends Controller
             ->leftJoin('hinh_anh_san_phams', 'hinh_anh_san_phams.id_san_pham', '=', 'san_phams.id')
             ->select(
                 'san_phams.id',
+                'san_phams.slug_san_pham',
                 'danh_mucs.ten_danh_muc',
                 'san_phams.ten_san_pham',
                 DB::raw('MIN(hinh_anh_san_phams.hinh_anh) AS hinh_anh'),
@@ -97,6 +98,7 @@ class SanPhamShopController extends Controller
             'san_phams.id',
             'danh_mucs.ten_danh_muc',
             'san_phams.ten_san_pham',
+            'san_phams.slug_san_pham',
             'san_phams.gia_goc',
             'san_phams.giam_gia'
         )->get();

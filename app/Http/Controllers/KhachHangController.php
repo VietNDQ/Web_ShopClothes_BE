@@ -12,9 +12,50 @@ use App\Models\TinhThanh;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Google_Client;
 
 class KhachHangController extends Controller
 {
+    public function loginGoogle(Request $request)
+    {
+        $client = new Google_Client(['client_id' => env('CLIENT_ID')]);
+        $payload = $client->verifyIdToken($request->id_token);
+        if ($payload) {
+            $ho_va_ten = $payload['name'];
+            $email = $payload['email'];
+            $user = KhachHang::where('email', $email)->first();
+            $token = $user->createToken('token_khach_hang')->plainTextToken;
+            if ($user) {
+                return response()->json([
+                    'status'    => true,
+                    'message'   => 'Đăng nhập thành công',
+                    'ho_va_ten' => $user->ho_va_ten,
+                    'token'     => $token,
+                ]);
+            } else {
+                KhachHang::create([
+                    'ho_va_ten'         => $ho_va_ten,
+                    'email'             => $email,
+                    'password'          => '123456',
+                    'so_dien_thoai'     => null,
+                    'ngay_sinh'         => null,
+                    'is_active'       => 1,
+                ]);
+
+                return response()->json([
+                    'status'  => true,
+                    'message' => 'Bạn Đăng Ký Tài Khoản  ' . $request->email . '  Thành Công',
+                    'token'   => $token,
+                ]);
+            }
+        } else {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Token không hợp lệ hoặc đã hết hạn.',
+            ]);
+        }
+    }
+
     public function layThongTin()
     {
         $user = Auth::guard('sanctum')->user();
@@ -34,14 +75,13 @@ class KhachHangController extends Controller
     public function checkToken()
     {
         $user_login = Auth::guard('sanctum')->user();
-        if($user_login){
+        if ($user_login) {
             return response()->json([
                 'status' => true,
                 'ho_va_ten' => $user_login->ho_va_ten,
                 'email' => $user_login->email,
             ]);
-        }
-        else {
+        } else {
             return response()->json([
                 'status' => false,
                 'message' => 'Bạn cần đăng nhập hệ thống!',
@@ -52,9 +92,9 @@ class KhachHangController extends Controller
     public function login(Request $request)
     {
         $check = KhachHang::where('email', $request->email)
-                            ->where('password', $request->password)
-                            ->first();
-        if($check){
+            ->where('password', $request->password)
+            ->first();
+        if ($check) {
             return response()->json([
                 'status'    => true,
                 'message'   => 'Đăng nhập hệ thống thành công.',
@@ -103,15 +143,22 @@ class KhachHangController extends Controller
     {
         $user = Auth::guard('sanctum')->user();
         $data = DiaChi::where('id_khach_hang', $user->id)
-            ->join('khach_hangs', 'khach_hangs.id', '=', 'dia_chis.id_khach_hang')
             ->join('tinh_thanhs', 'tinh_thanhs.id', '=', 'dia_chis.id_tinh_thanh')
             ->join('quan_huyens', 'quan_huyens.id', '=', 'dia_chis.id_quan_huyen')
             ->join('phuong_xas', 'phuong_xas.id', '=', 'dia_chis.id_phuong_xa')
-            ->select('khach_hangs.ho_va_ten','dia_chis.so_dien_thoai','tinh_thanhs.ten_tinh_thanh','quan_huyens.ten_quan_huyen','phuong_xas.ten_phuong_xa','dia_chis.dia_chi')
+            ->select('dia_chis.id', 'dia_chis.id_tinh_thanh', 'dia_chis.id_quan_huyen', 'dia_chis.id_phuong_xa', 'dia_chis.id_khach_hang', 'dia_chis.ten_nguoi_nhan', 'dia_chis.so_dien_thoai', 'tinh_thanhs.ten_tinh_thanh', 'quan_huyens.ten_quan_huyen', 'phuong_xas.ten_phuong_xa', 'dia_chis.dia_chi')
             ->get();
-        return response()->json([
-            'data' => $data,
-        ]);
+        if ($data) {
+            return response()->json([
+                'status' => 1,
+                'data' => $data,
+            ]);
+        } else {
+            return response()->json([
+                'status' => 1,
+                'message' => 'Chưa có địa chỉ nhận hàng.'
+            ]);
+        }
     }
     public function storeDiaChi(Request $request)
     {
@@ -121,13 +168,44 @@ class KhachHangController extends Controller
             'id_khach_hang'         => $user->id,
             'id_quan_huyen'         => $request->id_quan_huyen,
             'id_phuong_xa'          => $request->id_phuong_xa,
-            'dia_chi'               => $request->dia_chi_cu_the,
+            'id_tinh_thanh'          => $request->id_tinh_thanh,
+            'dia_chi'               => $request->dia_chi,
             'ten_nguoi_nhan'        => $request->ten_nguoi_nhan,
             'so_dien_thoai'         => $request->so_dien_thoai,
         ]);
         return response()->json([
             'status' => true,
             'message' => 'Thêm mới địa chị nhận hàng thành công'
+        ]);
+    }
+
+    public function updateDiaChi(Request $request)
+    {
+        $user = Auth::guard('sanctum')->user();
+
+        DiaChi::where('dia_chis.id', $request->id)->update([
+            'id_khach_hang'         => $user->id,
+            'id_quan_huyen'         => $request->id_quan_huyen,
+            'id_phuong_xa'          => $request->id_phuong_xa,
+            'id_tinh_thanh'          => $request->id_tinh_thanh,
+            'dia_chi'               => $request->dia_chi,
+            'ten_nguoi_nhan'        => $request->ten_nguoi_nhan,
+            'so_dien_thoai'         => $request->so_dien_thoai,
+        ]);
+        return response()->json([
+            'status' => true,
+            'message' => 'Cập nhật địa chị nhận hàng thành công'
+        ]);
+    }
+
+    public function destroyDiaChi(Request $request)
+    {
+        $user = Auth::guard('sanctum')->user();
+
+        DiaChi::where('id', $request->id)->delete();
+        return response()->json([
+            'status' => true,
+            'message' => 'Xóa địa chị nhận hàng thành công'
         ]);
     }
 
@@ -185,7 +263,7 @@ class KhachHangController extends Controller
             'password'          => $request->password,
             'so_dien_thoai'     => $request->so_dien_thoai,
             'ngay_sinh'         => $request->ngay_sinh,
-            'hash_active'       => $request->hash_active,
+            'is_active'       => $request->is_active,
         ]);
 
         return response()->json([

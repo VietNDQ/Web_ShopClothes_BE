@@ -17,7 +17,10 @@ return [
         'guard' => env('AUTH_GUARD', 'web'),
         'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
     ],
-
+    'defaults' => [
+        'guard' => 'nhanviens',
+        'passwords' => 'users',
+    ],
     /*
     |--------------------------------------------------------------------------
     | Authentication Guards
@@ -40,10 +43,10 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
-        'sanctum' => [
-        'driver' => 'sanctum',
-        'provider' => 'khachhangs',  // đổi từ 'users' thành 'khachhangs'
-    ],
+        'nhanviens' => [
+            'driver' => 'session', // Hoặc 'token' nếu dùng API không cần cookie
+            'provider' => 'nhanviens',
+        ],
     ],
 
     /*
@@ -69,10 +72,14 @@ return [
             'model' => env('AUTH_MODEL', App\Models\User::class),
         ],
 
-        'khachhangs' => [
-        'driver' => 'eloquent',
-        'model' => App\Models\KhachHang::class,  // thêm provider này
-    ],
+        // 'users' => [
+        //     'driver' => 'database',
+        //     'table' => 'users',
+        // ],
+        'nhanviens' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\NhanVien::class,
+        ],
     ],
 
     /*

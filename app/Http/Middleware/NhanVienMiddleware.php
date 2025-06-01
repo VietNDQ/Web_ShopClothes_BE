@@ -16,18 +16,12 @@ class NhanVienMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $token = $request->bearerToken();
-        Log::info('Token received: ' . $token);
-
         $user = Auth::guard('sanctum')->user();
-        Log::info('User from guard: ' . ($user ? $user->id : 'null'));
-
-        if (!$user) {
-            return response()->json([
-                'message' => "Chưa xác thực - user null",
-            ], 401);
+        if($user && $user instanceof \App\Models\NhanVien){
+            return $next($request);
         }
-
-        return $next($request);
+        return response()->json([
+            'message' => 'Bạn cần đăng nhập để thực hiện chức năng này'
+        ], 401);
     }
 }

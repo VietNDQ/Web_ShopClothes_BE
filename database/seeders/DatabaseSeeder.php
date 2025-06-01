@@ -32,6 +32,7 @@ class DatabaseSeeder extends Seeder
             TinhThanhSeeder::class,
             QuanHuyenSeeder::class,
             PhuongXaSeeder::class,
+            DiaChiSeeder::class,
         ]);
 
     }

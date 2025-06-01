@@ -5,6 +5,7 @@ use App\Http\Controllers\BienTheSanPhamController;
 use App\Http\Controllers\DanhMucController;
 use App\Http\Controllers\DiaChiController;
 use App\Http\Controllers\DiaChiKhachHangController;
+use App\Http\Controllers\DonHangController;
 use App\Http\Controllers\KhachHangController;
 use App\Http\Controllers\NhanVienController;
 use App\Http\Controllers\SanPhamController;
@@ -112,13 +113,17 @@ Route::get('/home-page/san-pham/cung-danh-muc', [SanPhamShopController::class, '
 Route::get('/khach-hang/check-token', [KhachHangController::class, 'checkToken']);
 Route::post('/khach-hang/dang-nhap', [KhachHangController::class, 'login']);
 Route::get('/khach-hang/logout', [KhachHangController::class, 'logOut']);
+Route::post('/khach-hang/login-google', [KhachHangController::class, 'loginGoogle']);
 
 Route::get('/khach-hang/lay-thong-tin-profile', [KhachHangController::class, 'layThongTin'])->middleware('khachHangMiddle');
-
+//Địa chỉ
 Route::get('/khach-hang/dia-chi/get-tinh-thanh',[KhachHangController::class, 'getDataTinhThanh']);
 Route::post('/khach-hang/dia-chi/get-quan-huyen',[KhachHangController::class, 'getDataQuanHuyen']);
 Route::post('/khach-hang/dia-chi/get-phuong-xa',[KhachHangController::class, 'getDataPhuongXa']);
+Route::post('/khach-hang/dia-chi/create',[KhachHangController::class, 'storeDiaChi'])->middleware('khachHangMiddle');
+Route::post('/khach-hang/dia-chi/update',[KhachHangController::class, 'updateDiaChi'])->middleware('khachHangMiddle');
+Route::post('/khach-hang/dia-chi/delete',[KhachHangController::class, 'destroyDiaChi'])->middleware('khachHangMiddle');
+Route::get('/khach-hang/dia-chi/get-data',[KhachHangController::class, 'getDataDiaChi'])->middleware('khachHangMiddle');
 
-Route::post('/khach-hang/dia-chi/create',[KhachHangController::class, 'storeDiaChi']);
-Route::get('/khach-hang/dia-chi/get-data',[KhachHangController::class, 'getDataDiaChi']);
-
+//Đặt hàng
+Route::post('/khach-hang/them-gio-hang',[DonHangController::class, 'addProduct']);
