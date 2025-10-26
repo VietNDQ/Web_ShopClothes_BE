@@ -6,6 +6,7 @@ use App\Http\Requests\KhachHangDangKyRequest;
 use App\Models\DiaChi;
 use App\Models\DiaChiKhachHang;
 use App\Models\KhachHang;
+use App\Models\PhanQuyen;
 use App\Models\PhuongXa;
 use App\Models\QuanHuyen;
 use App\Models\TinhThanh;
@@ -17,44 +18,51 @@ use Google_Client;
 class KhachHangController extends Controller
 {
     public function loginGoogle(Request $request)
-    {
-        $client = new Google_Client(['client_id' => env('CLIENT_ID')]);
-        $payload = $client->verifyIdToken($request->id_token);
-        if ($payload) {
-            $ho_va_ten = $payload['name'];
-            $email = $payload['email'];
-            $user = KhachHang::where('email', $email)->first();
-            $token = $user->createToken('token_khach_hang')->plainTextToken;
-            if ($user) {
-                return response()->json([
-                    'status'    => true,
-                    'message'   => 'Đăng nhập thành công',
-                    'ho_va_ten' => $user->ho_va_ten,
-                    'token'     => $token,
-                ]);
-            } else {
-                KhachHang::create([
-                    'ho_va_ten'         => $ho_va_ten,
-                    'email'             => $email,
-                    'password'          => '123456',
-                    'so_dien_thoai'     => null,
-                    'ngay_sinh'         => null,
-                    'is_active'       => 1,
-                ]);
+{
+    $client = new Google_Client(['client_id' => env('CLIENT_ID')]);
+    $payload = $client->verifyIdToken($request->id_token);
 
-                return response()->json([
-                    'status'  => true,
-                    'message' => 'Bạn Đăng Ký Tài Khoản  ' . $request->email . '  Thành Công',
-                    'token'   => $token,
-                ]);
-            }
-        } else {
+    if ($payload) {
+        $ho_va_ten = $payload['name'];
+        $email = $payload['email'];
+
+        $user = KhachHang::where('email', $email)->first();
+
+        if ($user) {
+            $token = $user->createToken('token_khach_hang')->plainTextToken;
             return response()->json([
-                'status'  => false,
-                'message' => 'Token không hợp lệ hoặc đã hết hạn.',
+                'status'    => true,
+                'message'   => 'Đăng nhập thành công',
+                'ho_va_ten' => $user->ho_va_ten,
+                'token'     => $token,
+            ]);
+        } else {
+            $newUser = KhachHang::create([
+                'ho_va_ten'     => $ho_va_ten,
+                'email'         => $email,
+                'password'      => '123456',
+                'so_dien_thoai' => null,
+                'ngay_sinh'     => null,
+                'is_active'     => 1,
+            ]);
+
+            // Gán lại user từ $newUser
+            $token = $newUser->createToken('token_khach_hang')->plainTextToken;
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Bạn đã đăng ký tài khoản thành công!',
+                'token'   => $token,
             ]);
         }
+    } else {
+        return response()->json([
+            'status'  => false,
+            'message' => 'Token không hợp lệ hoặc đã hết hạn.',
+        ]);
     }
+}
+
 
     public function layThongTin()
     {
@@ -99,6 +107,7 @@ class KhachHangController extends Controller
                 'status'    => true,
                 'message'   => 'Đăng nhập hệ thống thành công.',
                 'ho_va_ten' => $check->ho_va_ten,
+                'id_khach_hang' => $check->id,
                 'token'     => $check->createToken('token_khach_hang')->plainTextToken,
             ]);
         } else {
@@ -235,6 +244,15 @@ class KhachHangController extends Controller
 
     public function changeStatus(Request $request)
     {
+        $id_chuc_nang = 14;
+        $chuc_vu = Auth::guard('sanctum')->user()->id_chuc_vu;
+        $check = PhanQuyen::where('id_chuc_vu', $chuc_vu)->where('id_chuc_nang', $id_chuc_nang)->first();
+        if (!$check) {
+            return response()->json([
+                'status' => 0,
+                'message' => 'Bạn không có quyền thực hiện chức năng này!'
+            ]);
+        }
         $khachHang = KhachHang::where('id', $request->id)->first();
         if (!$khachHang) {
             return response()->json([
@@ -257,6 +275,15 @@ class KhachHangController extends Controller
     }
     public function store(Request $request)
     {
+        $id_chuc_nang = 9; // Tao moi khach hang
+        $chuc_vu = Auth::guard('sanctum')->user()->id_chuc_vu;
+        $check = PhanQuyen::where('id_chuc_vu', $chuc_vu)->where('id_chuc_nang', $id_chuc_nang)->first();
+        if (!$check) {
+            return response()->json([
+                'status' => 0,
+                'message' => 'Bạn không có quyền thực hiện chức năng này!'
+            ]);
+        }
         KhachHang::create([
             'ho_va_ten'         => $request->ho_va_ten,
             'email'             => $request->email,
@@ -273,6 +300,15 @@ class KhachHangController extends Controller
     }
     public function getData()
     {
+        $id_chuc_nang = 9;
+        $chuc_vu = Auth::guard('sanctum')->user()->id_chuc_vu;
+        $check = PhanQuyen::where('id_chuc_vu', $chuc_vu)->where('id_chuc_nang', $id_chuc_nang)->first();
+        if (!$check) {
+            return response()->json([
+                'status' => 0,
+                'message' => 'Bạn không có quyền thực hiện chức năng này!'
+            ]);
+        }
         $data = KhachHang::get();
         return response()->json([
             'data' => $data
@@ -280,6 +316,16 @@ class KhachHangController extends Controller
     }
     public function update(Request $request)
     {
+        $id_chuc_nang = 10;
+        $chuc_vu = Auth::guard('sanctum')->user()->id_chuc_vu;
+        $check = PhanQuyen::where('id_chuc_vu', $chuc_vu)->where('id_chuc_nang', $id_chuc_nang)->first();
+        if (!$check) {
+            return response()->json([
+                'status' => 0,
+                'message' => 'Bạn không có quyền thực hiện chức năng này!'
+            ]);
+        }
+
         KhachHang::where('id', $request->id)->update([
             'ho_va_ten'         => $request->ho_va_ten,
             'email'             => $request->email,
@@ -297,6 +343,15 @@ class KhachHangController extends Controller
 
     public function destroy(Request $request)
     {
+        $id_chuc_nang = 11;
+        $chuc_vu = Auth::guard('sanctum')->user()->id_chuc_vu;
+        $check = PhanQuyen::where('id_chuc_vu', $chuc_vu)->where('id_chuc_nang', $id_chuc_nang)->first();
+        if (!$check) {
+            return response()->json([
+                'status' => 0,
+                'message' => 'Bạn không có quyền thực hiện chức năng này!'
+            ]);
+        }
         KhachHang::where('id', $request->id)->delete();
 
         return response()->json([
@@ -307,6 +362,15 @@ class KhachHangController extends Controller
 
     public function search(Request $request)
     {
+        $id_chuc_nang = 13;
+        $chuc_vu = Auth::guard('sanctum')->user()->id_chuc_vu;
+        $check = PhanQuyen::where('id_chuc_vu', $chuc_vu)->where('id_chuc_nang', $id_chuc_nang)->first();
+        if (!$check) {
+            return response()->json([
+                'status' => 0,
+                'message' => 'Bạn không có quyền thực hiện chức năng này!'
+            ]);
+        }
         $noi_dung = '%' . $request->noi_dung . '%';
 
         $data = KhachHang::where('ho_va_ten', 'like', $noi_dung)

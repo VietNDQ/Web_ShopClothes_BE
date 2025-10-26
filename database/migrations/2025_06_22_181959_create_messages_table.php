@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('chuc_vus', function (Blueprint $table) {
+        Schema::create('messages', function (Blueprint $table) {
             $table->id();
-            $table->string('ten_chuc_vu');
-            $table->string('slug_chuc_vu');
-            $table->integer('trang_thai')->default(1);
+            $table->unsignedBigInteger('sender_id'); // id người gửi
+            $table->string('sender_type'); // 'user' hoặc 'staff'
+            $table->text('message'); // nội dung tin nhắn
             $table->timestamps();
         });
     }
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('chuc_vus');
+        Schema::dropIfExists('messages');
     }
 };

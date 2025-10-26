@@ -28,4 +28,8 @@ class NhanVien extends Authenticatable
     {
         return $this->belongsTo(ChucVu::class, 'id_chuc_vu', 'id');
     }
+    public function messages()
+    {
+        return $this->morphMany(Message::class, 'sender');
+    }
 }
