@@ -52,7 +52,7 @@ class ChiTietSanPhamController extends Controller
         // 2. Lấy danh sách ảnh
         $images = DB::table('hinh_anh_san_phams')
             ->where('id_san_pham', $id)
-            ->pluck('hinh_anh')
+            ->pluck('url')
             ->toArray();
 
         $data->hinh_anh = $images;
@@ -87,7 +87,7 @@ class ChiTietSanPhamController extends Controller
                 'san_phams.slug_san_pham',
                 'danh_mucs.ten_danh_muc',
                 'san_phams.ten_san_pham',
-                DB::raw('MIN(hinh_anh_san_phams.hinh_anh) AS hinh_anh'),
+                DB::raw('MIN(hinh_anh_san_phams.url) AS hinh_anh'),
                 DB::raw('san_phams.gia_goc - (san_phams.gia_goc * san_phams.giam_gia / 100) AS gia_ban'),
                 'san_phams.gia_goc',
                 'san_phams.giam_gia'

@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\BienTheController;
 use App\Http\Controllers\BienTheSanPhamController;
 use App\Http\Controllers\ChiTietPhanQuyenController;
 use App\Http\Controllers\ChiTietSanPhamController;
@@ -10,24 +9,13 @@ use App\Http\Controllers\DiaChiController;
 use App\Http\Controllers\DiaChiKhachHangController;
 use App\Http\Controllers\DonHangController;
 use App\Http\Controllers\KhachHangController;
-use App\Http\Controllers\MessagesController;
 use App\Http\Controllers\NhanVienController;
 use App\Http\Controllers\PhanQuyenController;
-use App\Http\Controllers\SanPhamController;
 use App\Http\Controllers\SanPhamShopController;
 use App\Http\Controllers\ThanhToanController;
-use App\Http\Controllers\ThươngHieuController;
 use App\Http\Middleware\CheckKhachHangMiddlware;
 use App\Http\Middleware\NhanVienMiddleware;
-use App\Models\BienTheSanPham;
-use App\Models\ThuongHieu;
-use GuzzleHttp\Middleware;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
 
 // -----------------------------------------------------------------------------------------------------
 // ------------------------------------------ADMIN-------------------------------------------------
@@ -36,10 +24,6 @@ Route::post('/admin/dang-nhap', [NhanVienController::class, 'login']);
 Route::get('/admin/check-token', [NhanVienController::class, 'checkToken']);
 Route::get('/admin/logout', [NhanVienController::class, 'logOut']);
 Route::post('/admin/phan-quyen/chuc-nang-nhan-vien', [ChucNangController::class, 'getChucNangTheoNhanVien'])->middleware('nhanVienMiddle');
-
-//Chat Box
-    Route::get('/chat-box/get-messages', [MessagesController::class, 'getMessages']);
-    Route::post('/chat-box/send-message', [MessagesController::class, 'sendMessage']);
 
 //Nhân viên
 Route::middleware(NhanVienMiddleware::class)->group(function () {
@@ -87,24 +71,29 @@ Route::middleware(NhanVienMiddleware::class)->group(function () {
     Route::post('/admin/chi-tiet-phan-quyen/data', [ChiTietPhanQuyenController::class, 'getData']);
     Route::post('/admin/chi-tiet-phan-quyen/delete', [ChiTietPhanQuyenController::class, 'xoaChiTietQuyen']);
 });
-//Thương hiệu
+// -----------------------------------------------------------------------------------------------------
+// SẢN PHẨM - Quản lý sản phẩm cho giao diện đăng sản phẩm
+// -----------------------------------------------------------------------------------------------------
 Route::middleware(NhanVienMiddleware::class)->group(function () {
-    Route::get('/admin/thuong-hieu/data', [ThươngHieuController::class, 'getData']);
-    Route::post('/admin/thuong-hieu/create', [ThươngHieuController::class, 'store']);
-    Route::post('/admin/thuong-hieu/update', [ThươngHieuController::class, 'update']);
-    Route::post('/admin/thuong-hieu/delete', [ThươngHieuController::class, 'destroy']);
-    Route::post('/admin/thuong-hieu/search', [ThươngHieuController::class, 'search']);
-    Route::post('/admin/thuong-hieu/change-status', [ThươngHieuController::class, 'changeStatus']);
-    Route::get('/admin/thuong-hieu/data-open', [ThươngHieuController::class, 'getOpenData']);
-});
-//Tới đây rồi
-//Sản phẩm
-Route::middleware(NhanVienMiddleware::class)->group(function () {
-    Route::post('/admin/san-pham/create', [SanPhamShopController::class, 'store']);
+    // Tạo sản phẩm mới
+    Route::post('/admin/dang-san-pham/create', [SanPhamShopController::class, 'store']);
+    
+    // Lấy danh sách sản phẩm với đầy đủ thông tin (cho giao diện đăng sản phẩm)
+    Route::get('/admin/san-pham/list', [SanPhamShopController::class, 'list']);
+    
+    // Lấy dữ liệu sản phẩm (tương tự list)
     Route::get('/admin/san-pham/data', [SanPhamShopController::class, 'getData']);
+    
+    // Cập nhật sản phẩm
     Route::post('/admin/san-pham/update', [SanPhamShopController::class, 'update']);
+    
+    // Xóa sản phẩm
     Route::post('/admin/san-pham/delete', [SanPhamShopController::class, 'destroy']);
+    
+    // Tìm kiếm sản phẩm
     Route::post('/admin/san-pham/search', [SanPhamShopController::class, 'search']);
+    
+    // Thay đổi trạng thái sản phẩm
     Route::post('/admin/san-pham/change-status', [SanPhamShopController::class, 'changeStatus']);
 });
 //Biến thể
@@ -124,6 +113,7 @@ Route::middleware(NhanVienMiddleware::class)->group(function () {
     Route::post('/admin/hinh-anh/delete', [SanPhamShopController::class, 'destroyHinhAnh']);
     Route::post('/admin/hinh-anh/search', [SanPhamShopController::class, 'searchHinhAnh']);
 });
+// Tỉnh thành
 Route::middleware(NhanVienMiddleware::class)->group(function () {
     //Tỉnh thành
     Route::get('/admin/tinh-thanh/data', [DiaChiController::class, 'getDataTinhThanh']);
