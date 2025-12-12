@@ -14,8 +14,7 @@ return new class extends Migration
         Schema::create('danh_mucs', function (Blueprint $table) {
             $table->id();
             $table->string('ten_danh_muc');
-            $table->integer('tinh_trang');
-            $table->text('mo_ta');
+            $table->integer('tinh_trang')->default(0);
             $table->timestamps();
         });
     }

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\KhachHangDangKyRequest;
+use App\Http\Requests\DiaChiCreateRequest;
+use App\Http\Requests\DiaChiUpdateRequest;
 use App\Models\DiaChi;
 use App\Models\DiaChiKhachHang;
 use App\Models\KhachHang;
@@ -80,6 +82,104 @@ class KhachHangController extends Controller
         }
     }
 
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::guard('sanctum')->user();
+        
+        if (!$user || !($user instanceof \App\Models\KhachHang)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Bạn cần đăng nhập để cập nhật thông tin!'
+            ], 401);
+        }
+
+        try {
+            $updateData = [];
+            
+            if ($request->has('ho_va_ten')) {
+                $updateData['ho_va_ten'] = $request->ho_va_ten;
+            }
+            
+            if ($request->has('so_dien_thoai')) {
+                $updateData['so_dien_thoai'] = preg_replace('/[^0-9]/', '', $request->so_dien_thoai);
+            }
+            
+            if ($request->has('ngay_sinh')) {
+                $updateData['ngay_sinh'] = $request->ngay_sinh;
+            }
+
+            if (empty($updateData)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Không có dữ liệu để cập nhật!'
+                ], 400);
+            }
+
+            $user->update($updateData);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Cập nhật thông tin thành công!',
+                'thong_tin' => $user->fresh()
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Đã có lỗi xảy ra. Vui lòng thử lại sau!'
+            ], 500);
+        }
+    }
+
+    public function changePassword(Request $request)
+    {
+        $user = Auth::guard('sanctum')->user();
+        
+        if (!$user || !($user instanceof \App\Models\KhachHang)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Bạn cần đăng nhập để đổi mật khẩu!'
+            ], 401);
+        }
+
+        // Validation
+        $request->validate([
+            'old_password' => 'required',
+            'password' => 'required|min:6',
+            're_password' => 'required|same:password'
+        ], [
+            'old_password.required' => 'Vui lòng nhập mật khẩu hiện tại!',
+            'password.required' => 'Vui lòng nhập mật khẩu mới!',
+            'password.min' => 'Mật khẩu mới phải có ít nhất 6 ký tự!',
+            're_password.required' => 'Vui lòng xác nhận mật khẩu mới!',
+            're_password.same' => 'Mật khẩu xác nhận không khớp!'
+        ]);
+
+        try {
+            // Kiểm tra mật khẩu cũ
+            if ($user->password !== $request->old_password) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Mật khẩu hiện tại không chính xác!'
+                ], 400);
+            }
+
+            // Cập nhật mật khẩu mới
+            $user->update([
+                'password' => $request->password
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Đổi mật khẩu thành công!'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Đã có lỗi xảy ra. Vui lòng thử lại sau!'
+            ], 500);
+        }
+    }
+
     public function checkToken()
     {
         $user_login = Auth::guard('sanctum')->user();
@@ -118,6 +218,45 @@ class KhachHangController extends Controller
         }
     }
 
+    public function dangKy(KhachHangDangKyRequest $request)
+    {
+        try {
+            // Kiểm tra email đã tồn tại chưa
+            $existingUser = KhachHang::where('email', $request->email)->first();
+            if ($existingUser) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Email này đã được sử dụng. Vui lòng chọn email khác!'
+                ], 400);
+            }
+
+            // Tạo tài khoản mới
+            $khachHang = KhachHang::create([
+                'ho_va_ten'     => $request->ho_va_ten,
+                'email'         => $request->email,
+                'password'      => $request->password,
+                'so_dien_thoai' => preg_replace('/[^0-9]/', '', $request->so_dien_thoai),
+                'ngay_sinh'     => $request->ngay_sinh,
+                'is_active'     => 1,
+            ]);
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Đăng ký tài khoản thành công! Vui lòng đăng nhập để tiếp tục.',
+                'data'    => [
+                    'id' => $khachHang->id,
+                    'email' => $khachHang->email,
+                    'ho_va_ten' => $khachHang->ho_va_ten,
+                ]
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Đã có lỗi xảy ra khi đăng ký. Vui lòng thử lại sau!'
+            ], 500);
+        }
+    }
+
     public function logOut()
     {
         $user = Auth::guard('sanctum')->user();
@@ -151,93 +290,215 @@ class KhachHangController extends Controller
     public function getDataDiaChi()
     {
         $user = Auth::guard('sanctum')->user();
+        
+        if (!$user || !($user instanceof \App\Models\KhachHang)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Bạn cần đăng nhập để xem địa chỉ!'
+            ], 401);
+        }
+        
         $data = DiaChi::where('id_khach_hang', $user->id)
             ->join('tinh_thanhs', 'tinh_thanhs.id', '=', 'dia_chis.id_tinh_thanh')
             ->join('quan_huyens', 'quan_huyens.id', '=', 'dia_chis.id_quan_huyen')
             ->join('phuong_xas', 'phuong_xas.id', '=', 'dia_chis.id_phuong_xa')
             ->select('dia_chis.id', 'dia_chis.id_tinh_thanh', 'dia_chis.id_quan_huyen', 'dia_chis.id_phuong_xa', 'dia_chis.id_khach_hang', 'dia_chis.ten_nguoi_nhan', 'dia_chis.so_dien_thoai', 'tinh_thanhs.ten_tinh_thanh', 'quan_huyens.ten_quan_huyen', 'phuong_xas.ten_phuong_xa', 'dia_chis.dia_chi')
             ->get();
-        if ($data) {
+            
+        if ($data->isEmpty()) {
             return response()->json([
-                'status' => 1,
-                'data' => $data,
-            ]);
-        } else {
-            return response()->json([
-                'status' => 1,
+                'status' => true,
+                'data' => [],
                 'message' => 'Chưa có địa chỉ nhận hàng.'
             ]);
         }
+        
+        return response()->json([
+            'status' => true,
+            'data' => $data,
+        ]);
     }
-    public function storeDiaChi(Request $request)
+    public function storeDiaChi(DiaChiCreateRequest $request)
     {
         $user = Auth::guard('sanctum')->user();
 
-        DiaChi::create([
-            'id_khach_hang'         => $user->id,
+        if (!$user || !($user instanceof \App\Models\KhachHang)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Bạn cần đăng nhập để thêm địa chỉ!'
+            ], 401);
+        }
+
+        try {
+            // Làm sạch số điện thoại (loại bỏ khoảng trắng và ký tự đặc biệt)
+            $soDienThoai = preg_replace('/[^0-9]/', '', $request->so_dien_thoai);
+            
+            if (empty($soDienThoai)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Số điện thoại không được để trống!'
+                ], 400);
+            }
+            
+            $diaChi = DiaChi::create([
+                'id_khach_hang'         => $user->id,
+                'id_tinh_thanh'          => $request->id_tinh_thanh,
+                'id_quan_huyen'         => $request->id_quan_huyen,
+                'id_phuong_xa'          => $request->id_phuong_xa,
+                'dia_chi'               => $request->dia_chi,
+                'ten_nguoi_nhan'        => $request->ten_nguoi_nhan,
+                'so_dien_thoai'         => $soDienThoai,
+            ]);
+            
+            return response()->json([
+                'status' => true,
+                'message' => 'Thêm mới địa chỉ nhận hàng thành công',
+                'data' => [
+                    'id' => $diaChi->id
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Đã có lỗi xảy ra. Vui lòng thử lại sau!'
+            ], 500);
+        }
+    }
+
+    public function updateDiaChi(DiaChiUpdateRequest $request)
+    {
+        $user = Auth::guard('sanctum')->user();
+
+        if (!$user || !($user instanceof \App\Models\KhachHang)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Bạn cần đăng nhập để cập nhật địa chỉ!'
+            ], 401);
+        }
+
+        // Kiểm tra địa chỉ có thuộc về user không
+        $diaChi = DiaChi::where('id', $request->id)
+            ->where('id_khach_hang', $user->id)
+            ->first();
+            
+        if (!$diaChi) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Địa chỉ không tồn tại hoặc không thuộc quyền sở hữu của bạn!'
+            ], 404);
+        }
+
+        try {
+            $diaChi->update([
+                'id_tinh_thanh'          => $request->id_tinh_thanh,
             'id_quan_huyen'         => $request->id_quan_huyen,
             'id_phuong_xa'          => $request->id_phuong_xa,
-            'id_tinh_thanh'          => $request->id_tinh_thanh,
             'dia_chi'               => $request->dia_chi,
             'ten_nguoi_nhan'        => $request->ten_nguoi_nhan,
             'so_dien_thoai'         => $request->so_dien_thoai,
         ]);
+            
         return response()->json([
             'status' => true,
-            'message' => 'Thêm mới địa chị nhận hàng thành công'
+                'message' => 'Cập nhật địa chỉ nhận hàng thành công'
         ]);
-    }
-
-    public function updateDiaChi(Request $request)
-    {
-        $user = Auth::guard('sanctum')->user();
-
-        DiaChi::where('dia_chis.id', $request->id)->update([
-            'id_khach_hang'         => $user->id,
-            'id_quan_huyen'         => $request->id_quan_huyen,
-            'id_phuong_xa'          => $request->id_phuong_xa,
-            'id_tinh_thanh'          => $request->id_tinh_thanh,
-            'dia_chi'               => $request->dia_chi,
-            'ten_nguoi_nhan'        => $request->ten_nguoi_nhan,
-            'so_dien_thoai'         => $request->so_dien_thoai,
-        ]);
-        return response()->json([
-            'status' => true,
-            'message' => 'Cập nhật địa chị nhận hàng thành công'
-        ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Đã có lỗi xảy ra. Vui lòng thử lại sau!'
+            ], 500);
+        }
     }
 
     public function destroyDiaChi(Request $request)
     {
         $user = Auth::guard('sanctum')->user();
 
-        DiaChi::where('id', $request->id)->delete();
+        if (!$user || !($user instanceof \App\Models\KhachHang)) {
         return response()->json([
-            'status' => true,
-            'message' => 'Xóa địa chị nhận hàng thành công'
+                'status' => false,
+                'message' => 'Bạn cần đăng nhập để xóa địa chỉ!'
+            ], 401);
+        }
+
+        // Validate id
+        $request->validate([
+            'id' => 'required|integer|exists:dia_chis,id'
+        ], [
+            'id.required' => 'ID địa chỉ không được để trống.',
+            'id.exists' => 'Địa chỉ không tồn tại.'
         ]);
+
+        // Kiểm tra địa chỉ có thuộc về user không
+        $diaChi = DiaChi::where('id', $request->id)
+            ->where('id_khach_hang', $user->id)
+            ->first();
+            
+        if (!$diaChi) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Địa chỉ không tồn tại hoặc không thuộc quyền sở hữu của bạn!'
+            ], 404);
+        }
+
+        try {
+            $diaChi->delete();
+            
+            return response()->json([
+                'status' => true,
+                'message' => 'Xóa địa chỉ nhận hàng thành công'
+        ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Đã có lỗi xảy ra. Vui lòng thử lại sau!'
+            ], 500);
+        }
     }
 
     public function getDataTinhThanh()
     {
         $data = TinhThanh::where('tinh_trang', 1)->get();
         return response()->json([
+            'status' => true,
             'data' => $data
         ]);
     }
 
     public function getDataQuanHuyen(Request $request)
     {
-        $data = QuanHuyen::where('tinh_trang', 1)->where('id_tinh_thanh', $request->id_tinh_thanh)->get();
+        $request->validate([
+            'id_tinh_thanh' => 'required|integer|exists:tinh_thanhs,id'
+        ], [
+            'id_tinh_thanh.required' => 'ID tỉnh/thành phố không được để trống.',
+            'id_tinh_thanh.exists' => 'Tỉnh/thành phố không tồn tại.'
+        ]);
+        
+        $data = QuanHuyen::where('tinh_trang', 1)
+            ->where('id_tinh_thanh', $request->id_tinh_thanh)
+            ->get();
+            
         return response()->json([
+            'status' => true,
             'data' => $data
         ]);
     }
 
     public function getDataPhuongXa(Request $request)
     {
-        $data = PhuongXa::where('tinh_trang', 1)->where('id_quan_huyen', $request->id_quan_huyen)->get();
+        $request->validate([
+            'id_quan_huyen' => 'required|integer|exists:quan_huyens,id'
+        ], [
+            'id_quan_huyen.required' => 'ID quận/huyện không được để trống.',
+            'id_quan_huyen.exists' => 'Quận/huyện không tồn tại.'
+        ]);
+        
+        $data = PhuongXa::where('tinh_trang', 1)
+            ->where('id_quan_huyen', $request->id_quan_huyen)
+            ->get();
+            
         return response()->json([
+            'status' => true,
             'data' => $data,
         ]);
     }

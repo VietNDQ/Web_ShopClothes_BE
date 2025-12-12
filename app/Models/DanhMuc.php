@@ -10,7 +10,13 @@ class DanhMuc extends Model
 
     protected $fillable = [
         'ten_danh_muc',
-        'tinh_trang',
+        'hinh_anh',
         'mo_ta',
+        'tinh_trang',
     ];
+
+    public function sanPhams()
+    {
+        return $this->hasMany(SanPham::class, 'id_danh_muc');
+    }
 }

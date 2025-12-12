@@ -75,16 +75,33 @@ class NhanVienController extends Controller
         $nhanVien = Auth::guard('sanctum')->user();
 
         if ($nhanVien && $nhanVien instanceof \App\Models\NhanVien) {
-            $donHang = DonHang::where('trang_thai', '>=', 1)->get();
+            // Admin: Đơn đặt trước hiện lên đầu (sắp xếp ASC - cũ nhất trước)
+            $donHang = DonHang::where('trang_thai', '>=', 1)
+                ->orderBy('don_hangs.created_at', 'asc')
+                ->get();
 
             $thongTinKhachHang = ThanhToan::join('khach_hangs', 'thanh_toans.id_khach_hang', '=', 'khach_hangs.id')
                 ->join('don_hangs', 'thanh_toans.id_don_hang', '=', 'don_hangs.id')
+                ->leftJoin('dia_chis', 'thanh_toans.id_dia_chi_giao_hang', '=', 'dia_chis.id')
                 ->where('don_hangs.trang_thai', '>=', 1)
-                ->select('thanh_toans.*', 'thanh_toans.ma_don_hang', 'khach_hangs.ho_va_ten', 'khach_hangs.so_dien_thoai', 'don_hangs.id', 'don_hangs.trang_thai as trang_thai_don_hang')
+                ->select(
+                    'thanh_toans.*', 
+                    'thanh_toans.ma_don_hang', 
+                    'khach_hangs.ho_va_ten', 
+                    'dia_chis.so_dien_thoai', 
+                    'don_hangs.id', 
+                    'don_hangs.trang_thai as trang_thai_don_hang', 
+                    'don_hangs.created_at'
+                )
+                ->orderBy('don_hangs.created_at', 'asc')
                 ->get();
             $chiTietDonHang = DonHang::join('thanh_toans', 'don_hangs.ma_don_hang', '=', 'thanh_toans.ma_don_hang')
                 ->join('khach_hangs', 'thanh_toans.id_khach_hang', '=', 'khach_hangs.id')
                 ->join('san_phams', 'don_hangs.id_san_pham', '=', 'san_phams.id')
+                ->leftJoin('hinh_anh_san_phams', function ($join) {
+                    $join->on('san_phams.id', '=', 'hinh_anh_san_phams.id_san_pham')
+                        ->whereRaw('hinh_anh_san_phams.id = (SELECT MIN(id) FROM hinh_anh_san_phams WHERE id_san_pham = san_phams.id)');
+                })
                 ->join('dia_chis', 'dia_chis.id', '=', 'thanh_toans.id_dia_chi_giao_hang')
                 ->join('tinh_thanhs', 'dia_chis.id_tinh_thanh', '=', 'tinh_thanhs.id')
                 ->join('quan_huyens', 'dia_chis.id_quan_huyen', '=', 'quan_huyens.id')
@@ -95,11 +112,19 @@ class NhanVienController extends Controller
                     'san_phams.ten_san_pham',
                     'khach_hangs.ho_va_ten',
                     'dia_chis.dia_chi',
+                    'dia_chis.ten_nguoi_nhan',
+                    'dia_chis.so_dien_thoai',
                     'tinh_thanhs.ten_tinh_thanh',
                     'quan_huyens.ten_quan_huyen',
                     'phuong_xas.ten_phuong_xa',
-                    'thanh_toans.ma_don_hang'
+                    'thanh_toans.ma_don_hang',
+                    'thanh_toans.ma_voucher',
+                    'thanh_toans.tong_tien_goc',
+                    'thanh_toans.tien_giam_gia',
+                    'thanh_toans.tong_tien as tong_tien_sau_giam',
+                    'hinh_anh_san_phams.url as image'
                 )
+                ->orderBy('don_hangs.created_at', 'asc')
                 ->get();
 
             return response()->json([
@@ -326,5 +351,148 @@ class NhanVienController extends Controller
         return response()->json([
             'data' => $data
         ]);
+    }
+
+    /**
+     * Lấy thông tin profile của nhân viên đang đăng nhập
+     */
+    public function layThongTinProfile()
+    {
+        $user = Auth::guard('sanctum')->user();
+        if ($user && $user instanceof \App\Models\NhanVien) {
+            // Load thông tin chức vụ
+            $user->load('chucVu');
+            
+            return response()->json([
+                'status' => true,
+                'thong_tin' => $user,
+            ]);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => "Có lỗi xảy ra",
+            ], 401);
+        }
+    }
+
+    /**
+     * Cập nhật thông tin profile của nhân viên đang đăng nhập
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::guard('sanctum')->user();
+        
+        if (!$user || !($user instanceof \App\Models\NhanVien)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Bạn cần đăng nhập để cập nhật thông tin!'
+            ], 401);
+        }
+
+        try {
+            $request->validate([
+                'ho_va_ten' => 'nullable|string|max:255',
+                'so_dien_thoai' => 'nullable|string|max:20',
+                'dia_chi' => 'nullable|string|max:500',
+            ], [
+                'ho_va_ten.max' => 'Họ và tên không được vượt quá 255 ký tự!',
+                'so_dien_thoai.max' => 'Số điện thoại không được vượt quá 20 ký tự!',
+                'dia_chi.max' => 'Địa chỉ không được vượt quá 500 ký tự!',
+            ]);
+
+            $updateData = [];
+            
+            if ($request->has('ho_va_ten')) {
+                $updateData['ho_va_ten'] = $request->ho_va_ten;
+            }
+            
+            if ($request->has('so_dien_thoai')) {
+                $updateData['so_dien_thoai'] = preg_replace('/[^0-9]/', '', $request->so_dien_thoai);
+            }
+            
+            if ($request->has('dia_chi')) {
+                $updateData['dia_chi'] = $request->dia_chi;
+            }
+
+            if (empty($updateData)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Không có dữ liệu để cập nhật!'
+                ], 400);
+            }
+
+            $user->update($updateData);
+            $user->load('chucVu');
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Cập nhật thông tin thành công!',
+                'thong_tin' => $user->fresh()
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Dữ liệu không hợp lệ!',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Đã có lỗi xảy ra. Vui lòng thử lại sau!'
+            ], 500);
+        }
+    }
+
+    /**
+     * Đổi mật khẩu cho nhân viên đang đăng nhập
+     */
+    public function changePassword(Request $request)
+    {
+        $user = Auth::guard('sanctum')->user();
+        
+        if (!$user || !($user instanceof \App\Models\NhanVien)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Bạn cần đăng nhập để đổi mật khẩu!'
+            ], 401);
+        }
+
+        // Validation
+        $request->validate([
+            'old_password' => 'required',
+            'password' => 'required|min:6',
+            're_password' => 'required|same:password'
+        ], [
+            'old_password.required' => 'Vui lòng nhập mật khẩu hiện tại!',
+            'password.required' => 'Vui lòng nhập mật khẩu mới!',
+            'password.min' => 'Mật khẩu mới phải có ít nhất 6 ký tự!',
+            're_password.required' => 'Vui lòng xác nhận mật khẩu mới!',
+            're_password.same' => 'Mật khẩu xác nhận không khớp!'
+        ]);
+
+        try {
+            // Kiểm tra mật khẩu cũ
+            if ($user->password !== $request->old_password) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Mật khẩu hiện tại không chính xác!'
+                ], 400);
+            }
+
+            // Cập nhật mật khẩu mới
+            $user->update([
+                'password' => $request->password
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Đổi mật khẩu thành công!'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Đã có lỗi xảy ra. Vui lòng thử lại sau!'
+            ], 500);
+        }
     }
 }

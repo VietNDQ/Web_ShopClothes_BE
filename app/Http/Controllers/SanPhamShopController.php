@@ -9,6 +9,8 @@ use App\Models\SanPham;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class SanPhamShopController extends Controller
 {
@@ -63,9 +65,13 @@ class SanPhamShopController extends Controller
             // Tính giá cơ bản (giá thấp nhất trong các biến thể)
             $giaCoBan = min(array_column($bienTheList, 'gia'));
 
+            // Tạo slug từ tên sản phẩm
+            $slug = $this->createSlug($request->ten_san_pham, $request->slug_san_pham ?? null);
+
             // Tạo sản phẩm
             $sanPham = SanPham::create([
                 'ten_san_pham' => $request->ten_san_pham,
+                'slug_san_pham' => $slug,
                 'mo_ta' => $request->mo_ta ?? '',
                 'id_danh_muc' => $request->id_danh_muc,
                 'id_nhan_vien' => $user->id,
@@ -86,14 +92,19 @@ class SanPhamShopController extends Controller
                 ]);
             }
 
-            // Upload hình ảnh
-            if ($request->hasFile('hinh_anh')) {
-                foreach ($request->file('hinh_anh') as $file) {
-                    $path = $file->store('uploads/san_pham', 'public');
-                    HinhAnhSanPham::create([
-                        'id_san_pham' => $sanPham->id,
-                        'url' => '/storage/' . $path,
-                    ]);
+            // Lưu hình ảnh từ URLs
+            if ($request->has('hinh_anh_urls')) {
+                $imageUrls = json_decode($request->hinh_anh_urls, true);
+                
+                if (is_array($imageUrls) && !empty($imageUrls)) {
+                    foreach ($imageUrls as $url) {
+                        if (!empty($url) && filter_var($url, FILTER_VALIDATE_URL)) {
+                            HinhAnhSanPham::create([
+                                'id_san_pham' => $sanPham->id,
+                                'url' => $url,
+                            ]);
+                        }
+                    }
                 }
             }
 
@@ -130,6 +141,7 @@ class SanPhamShopController extends Controller
                 ->leftJoin('bien_the_san_phams', 'bien_the_san_phams.id_san_pham', '=', 'san_phams.id')
                 ->select(
                     'san_phams.id',
+                    'san_phams.slug_san_pham',
                     'san_phams.ten_san_pham',
                     'san_phams.mo_ta',
                     'san_phams.gia_co_ban',
@@ -145,6 +157,7 @@ class SanPhamShopController extends Controller
                 )
                 ->groupBy(
                     'san_phams.id',
+                    'san_phams.slug_san_pham',
                     'san_phams.ten_san_pham',
                     'san_phams.mo_ta',
                     'san_phams.gia_co_ban',
@@ -315,11 +328,131 @@ class SanPhamShopController extends Controller
      */
     public function update(Request $request)
     {
-        // Method này có thể được implement sau nếu cần
-        return response()->json([
-            'status' => false,
-            'message' => 'Chức năng cập nhật sản phẩm chưa được triển khai.',
-        ], 501);
+        try {
+            // Lấy nhân viên từ token
+            $user = Auth::guard('sanctum')->user();
+
+            if (!$user || !$user instanceof \App\Models\NhanVien) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Không xác thực được nhân viên. Vui lòng đăng nhập lại!',
+                ], 403);
+            }
+
+            $id = $request->id;
+            if (!$id) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'ID sản phẩm không hợp lệ!',
+                ], 400);
+            }
+
+            $sanPham = SanPham::find($id);
+            if (!$sanPham) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Sản phẩm không tồn tại!',
+                ], 404);
+            }
+
+            // Parse biến thể từ JSON
+            $bienTheList = json_decode($request->bien_the, true);
+
+            if (!is_array($bienTheList) || empty($bienTheList)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Vui lòng thêm ít nhất một biến thể sản phẩm!',
+                ], 400);
+            }
+
+            // Validate biến thể
+            foreach ($bienTheList as $index => $bienThe) {
+                if (empty($bienThe['size']) && empty($bienThe['mau_sac'])) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => "Biến thể thứ " . ($index + 1) . " phải có ít nhất size hoặc màu sắc!",
+                    ], 400);
+                }
+                if (!isset($bienThe['so_luong']) || $bienThe['so_luong'] < 0) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => "Biến thể thứ " . ($index + 1) . " có số lượng không hợp lệ!",
+                    ], 400);
+                }
+                if (!isset($bienThe['gia']) || $bienThe['gia'] < 0) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => "Biến thể thứ " . ($index + 1) . " có giá không hợp lệ!",
+                    ], 400);
+                }
+            }
+
+            // Tính giá cơ bản (giá thấp nhất trong các biến thể)
+            $giaCoBan = min(array_column($bienTheList, 'gia'));
+
+            // Tạo slug mới nếu tên sản phẩm thay đổi hoặc có slug mới
+            $slug = $sanPham->slug_san_pham;
+            if ($request->ten_san_pham !== $sanPham->ten_san_pham || ($request->has('slug_san_pham') && $request->slug_san_pham)) {
+                $slug = $this->createSlug($request->ten_san_pham, $request->slug_san_pham ?? null, $sanPham->id);
+            }
+
+            // Cập nhật thông tin sản phẩm
+            $sanPham->update([
+                'ten_san_pham' => $request->ten_san_pham,
+                'slug_san_pham' => $slug,
+                'mo_ta' => $request->mo_ta ?? '',
+                'id_danh_muc' => $request->id_danh_muc,
+                'gia_co_ban' => $giaCoBan,
+                'tinh_trang' => $request->tinh_trang ?? $sanPham->tinh_trang,
+            ]);
+
+            // Xóa tất cả biến thể cũ và tạo lại
+            BienTheSanPham::where('id_san_pham', $id)->delete();
+            foreach ($bienTheList as $bienThe) {
+                BienTheSanPham::create([
+                    'id_san_pham' => $sanPham->id,
+                    'size' => $bienThe['size'] ?? null,
+                    'mau_sac' => $bienThe['mau_sac'] ?? null,
+                    'so_luong' => $bienThe['so_luong'] ?? 0,
+                    'gia' => $bienThe['gia'] ?? 0,
+                ]);
+            }
+
+            // Xử lý hình ảnh từ URLs
+            if ($request->has('hinh_anh_urls')) {
+                $imageUrls = json_decode($request->hinh_anh_urls, true);
+                
+                if (is_array($imageUrls) && !empty($imageUrls)) {
+                    // Xóa tất cả hình ảnh cũ
+                    HinhAnhSanPham::where('id_san_pham', $id)->delete();
+                    
+                    // Thêm hình ảnh mới từ URLs
+                    foreach ($imageUrls as $url) {
+                        if (!empty($url) && filter_var($url, FILTER_VALIDATE_URL)) {
+                            HinhAnhSanPham::create([
+                                'id_san_pham' => $sanPham->id,
+                                'url' => $url,
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Cập nhật sản phẩm "' . $sanPham->ten_san_pham . '" thành công!',
+                'data' => [
+                    'id' => $sanPham->id,
+                    'ten_san_pham' => $sanPham->ten_san_pham,
+                ],
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Lỗi khi cập nhật sản phẩm: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -358,16 +491,32 @@ class SanPhamShopController extends Controller
                     $join->on('hinh_anh_san_phams.id_san_pham', '=', 'san_phams.id')
                          ->whereRaw('hinh_anh_san_phams.id = (SELECT MIN(id) FROM hinh_anh_san_phams WHERE id_san_pham = san_phams.id)');
                 })
+                ->leftJoin('bien_the_san_phams', 'bien_the_san_phams.id_san_pham', '=', 'san_phams.id')
                 ->select(
                     'san_phams.id',
+                    'san_phams.slug_san_pham',
                     'san_phams.ten_san_pham',
                     'san_phams.mo_ta',
                     'san_phams.gia_co_ban',
+                    'san_phams.id_danh_muc',
+                    'san_phams.tinh_trang',
                     'danh_mucs.ten_danh_muc',
-                    DB::raw('COALESCE(hinh_anh_san_phams.url, "") as hinh_anh')
+                    DB::raw('COALESCE(hinh_anh_san_phams.url, "") as hinh_anh'),
+                    DB::raw('COALESCE(SUM(bien_the_san_phams.so_luong), 0) as tong_sl_ton')
                 )
                 ->where('san_phams.tinh_trang', 1)
                 ->where('san_phams.trang_thai', 1)
+                ->groupBy(
+                    'san_phams.id',
+                    'san_phams.slug_san_pham',
+                    'san_phams.ten_san_pham',
+                    'san_phams.mo_ta',
+                    'san_phams.gia_co_ban',
+                    'san_phams.id_danh_muc',
+                    'san_phams.tinh_trang',
+                    'danh_mucs.ten_danh_muc',
+                    'hinh_anh_san_phams.url'
+                )
                 ->orderBy('san_phams.ngay_dang', 'desc')
                 ->get();
 
@@ -380,6 +529,64 @@ class SanPhamShopController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'Lỗi khi lấy dữ liệu: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Lấy sản phẩm bán chạy nhất (public API)
+     */
+    public function getBestSellingProducts(Request $request)
+    {
+        try {
+            $limit = $request->input('limit', 6);
+            
+            $products = DB::table('don_hangs')
+                ->join('san_phams', 'don_hangs.id_san_pham', '=', 'san_phams.id')
+                ->join('danh_mucs', 'san_phams.id_danh_muc', '=', 'danh_mucs.id')
+                ->leftJoin('hinh_anh_san_phams', function($join) {
+                    $join->on('hinh_anh_san_phams.id_san_pham', '=', 'san_phams.id')
+                         ->whereRaw('hinh_anh_san_phams.id = (SELECT MIN(id) FROM hinh_anh_san_phams WHERE id_san_pham = san_phams.id)');
+                })
+                ->leftJoin('bien_the_san_phams', 'bien_the_san_phams.id_san_pham', '=', 'san_phams.id')
+                ->where('don_hangs.trang_thai', '>=', 1)
+                ->where('san_phams.tinh_trang', 1)
+                ->where('san_phams.trang_thai', 1)
+                ->select(
+                    'san_phams.id',
+                    'san_phams.slug_san_pham',
+                    'san_phams.ten_san_pham',
+                    'san_phams.mo_ta',
+                    'san_phams.gia_co_ban',
+                    'san_phams.id_danh_muc',
+                    'danh_mucs.ten_danh_muc',
+                    DB::raw('COALESCE(hinh_anh_san_phams.url, "") as hinh_anh'),
+                    DB::raw('COALESCE(SUM(bien_the_san_phams.so_luong), 0) as tong_sl_ton'),
+                    DB::raw('SUM(don_hangs.so_luong) as tong_so_luong_ban')
+                )
+                ->groupBy(
+                    'san_phams.id',
+                    'san_phams.slug_san_pham',
+                    'san_phams.ten_san_pham',
+                    'san_phams.mo_ta',
+                    'san_phams.gia_co_ban',
+                    'san_phams.id_danh_muc',
+                    'danh_mucs.ten_danh_muc',
+                    'hinh_anh_san_phams.url'
+                )
+                ->orderBy('tong_so_luong_ban', 'desc')
+                ->limit($limit)
+                ->get();
+
+            return response()->json([
+                'status' => true,
+                'data' => $products
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Lỗi khi lấy sản phẩm bán chạy: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -516,6 +723,35 @@ class SanPhamShopController extends Controller
                 'message' => 'Lỗi khi tìm kiếm hình ảnh: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Tạo slug từ tên sản phẩm
+     */
+    private function createSlug($tenSanPham, $slugCustom = null, $excludeId = null)
+    {
+        // Nếu có slug custom, sử dụng nó
+        if ($slugCustom && !empty(trim($slugCustom))) {
+            $slug = Str::slug(trim($slugCustom));
+        } else {
+            // Tạo slug từ tên sản phẩm
+            $slug = Str::slug($tenSanPham);
+        }
+
+        // Kiểm tra slug trùng lặp
+        $query = SanPham::where('slug_san_pham', $slug);
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+        
+        $count = $query->count();
+        
+        // Nếu slug đã tồn tại, thêm số vào cuối
+        if ($count > 0) {
+            $slug = $slug . '-' . ($count + 1);
+        }
+
+        return $slug;
     }
 }
 

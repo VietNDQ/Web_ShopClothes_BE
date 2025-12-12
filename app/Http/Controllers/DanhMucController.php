@@ -22,11 +22,23 @@ class DanhMucController extends Controller
             ]);
         }
         $data = DanhMuc::where('tinh_trang',1)
-                            ->get();;
+                            ->get();
         return response()->json([
             'data'  => $data,
         ]);
 
+    }
+
+    public function getPublicData()
+    {
+        $data = DanhMuc::where('tinh_trang', 1)
+            ->select('id', 'ten_danh_muc', 'hinh_anh', 'tinh_trang')
+            ->get();
+        
+        return response()->json([
+            'status' => true,
+            'data' => $data,
+        ]);
     }
     public function changeStatus(Request $request)
     {
@@ -70,10 +82,19 @@ class DanhMucController extends Controller
                 'message' => 'Bạn không có quyền thực hiện chức năng này!'
             ]);
         }
+
+        $hinhAnhPath = null;
+        if ($request->hasFile('hinh_anh')) {
+            $file = $request->file('hinh_anh');
+            $path = $file->store('uploads/danh_muc', 'public');
+            $hinhAnhPath = '/storage/' . $path;
+        }
+
         DanhMuc::create([
-            'ten_danh_muc'   =>$request->ten_danh_muc,
-            'tinh_trang'     =>$request->tinh_trang,
-            'mo_ta'          =>$request->mo_ta,
+            'ten_danh_muc'   => $request->ten_danh_muc,
+            'hinh_anh'       => $hinhAnhPath,
+            'mo_ta'          => $request->mo_ta ?? null,
+            'tinh_trang'     => $request->tinh_trang ?? 1,
         ]);
 
         return response()->json([
@@ -111,11 +132,39 @@ class DanhMucController extends Controller
                 'message' => 'Bạn không có quyền thực hiện chức năng này!'
             ]);
         }
-        DanhMuc::where('id', $request->id)->update([
-            'ten_danh_muc'   =>$request->ten_danh_muc,
-            'tinh_trang'     =>$request->tinh_trang,
-            'mo_ta'          =>$request->mo_ta,
-        ]);
+
+        $danhMuc = DanhMuc::find($request->id);
+        if (!$danhMuc) {
+            return response()->json([
+                'status' => 0,
+                'message' => 'Danh mục không tồn tại!'
+            ]);
+        }
+
+        $updateData = [
+            'ten_danh_muc'   => $request->ten_danh_muc,
+            'mo_ta'          => $request->mo_ta ?? null,
+            'tinh_trang'     => $request->tinh_trang ?? 1,
+        ];
+
+        // Xử lý upload hình ảnh mới nếu có
+        if ($request->hasFile('hinh_anh')) {
+            // Xóa hình ảnh cũ nếu có
+            if ($danhMuc->hinh_anh && file_exists(public_path($danhMuc->hinh_anh))) {
+                @unlink(public_path($danhMuc->hinh_anh));
+            }
+            $file = $request->file('hinh_anh');
+            $path = $file->store('uploads/danh_muc', 'public');
+            $updateData['hinh_anh'] = '/storage/' . $path;
+        } elseif ($request->has('hinh_anh') && $request->hinh_anh === null) {
+            // Nếu gửi null thì xóa hình ảnh
+            if ($danhMuc->hinh_anh && file_exists(public_path($danhMuc->hinh_anh))) {
+                @unlink(public_path($danhMuc->hinh_anh));
+            }
+            $updateData['hinh_anh'] = null;
+        }
+
+        $danhMuc->update($updateData);
 
         return response()->json([
             'status' => 1,

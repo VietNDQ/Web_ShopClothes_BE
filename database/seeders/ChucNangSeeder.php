@@ -92,6 +92,22 @@ class ChucNangSeeder extends Seeder
             ['id' => 68, 'ten_chuc_nang' => 'Xoá phường xã'],
             ['id' => 69, 'ten_chuc_nang' => 'Lấy dữ liệu phường xã'],
             ['id' => 70, 'ten_chuc_nang' => 'Tìm kiếm phường xã'],
+
+            // Thống kê
+            ['id' => 71, 'ten_chuc_nang' => 'Xem thống kê tổng quan'],
+            ['id' => 72, 'ten_chuc_nang' => 'Xem thống kê doanh thu'],
+            ['id' => 73, 'ten_chuc_nang' => 'Xem thống kê đơn hàng'],
+            ['id' => 74, 'ten_chuc_nang' => 'Xem thống kê sản phẩm bán chạy'],
+            ['id' => 75, 'ten_chuc_nang' => 'Xem thống kê khách hàng'],
+            ['id' => 76, 'ten_chuc_nang' => 'Xem thống kê theo danh mục'],
+
+            // Voucher
+            ['id' => 77, 'ten_chuc_nang' => 'Lấy dữ liệu voucher'],
+            ['id' => 78, 'ten_chuc_nang' => 'Tạo mới voucher'],
+            ['id' => 79, 'ten_chuc_nang' => 'Cập nhật voucher'],
+            ['id' => 80, 'ten_chuc_nang' => 'Xoá voucher'],
+            ['id' => 81, 'ten_chuc_nang' => 'Thay đổi trạng thái voucher'],
+            ['id' => 82, 'ten_chuc_nang' => 'Kiểm tra voucher'],
         ];
 
         DB::table('chuc_nangs')->insert($chucNang);

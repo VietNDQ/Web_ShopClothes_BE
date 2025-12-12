@@ -12,7 +12,10 @@ use App\Http\Controllers\KhachHangController;
 use App\Http\Controllers\NhanVienController;
 use App\Http\Controllers\PhanQuyenController;
 use App\Http\Controllers\SanPhamShopController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ThanhToanController;
+use App\Http\Controllers\ThongKeController;
+use App\Http\Controllers\VoucherController;
 use App\Http\Middleware\CheckKhachHangMiddlware;
 use App\Http\Middleware\NhanVienMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -36,6 +39,24 @@ Route::middleware(NhanVienMiddleware::class)->group(function () {
     // Đơn hàng
     Route::get('/admin/nhan-vien/get-don-hang', [NhanVienController::class, 'getDonHang']);
     Route::post('/admin/nhan-vien/xac-nhan-don-hang', [NhanVienController::class, 'xacNhanDonHang']);
+    
+    // Profile nhân viên
+    Route::get('/admin/nhan-vien/profile', [NhanVienController::class, 'layThongTinProfile']);
+    Route::post('/admin/nhan-vien/update-profile', [NhanVienController::class, 'updateProfile']);
+    Route::post('/admin/nhan-vien/change-password', [NhanVienController::class, 'changePassword']);
+    // Thống kê
+    Route::get('/admin/thong-ke/tong-quan', [ThongKeController::class, 'getTongQuan']);
+    Route::get('/admin/thong-ke/doanh-thu-theo-thoi-gian', [ThongKeController::class, 'getDoanhThuTheoThoiGian']);
+    Route::get('/admin/thong-ke/don-hang-theo-trang-thai', [ThongKeController::class, 'getDonHangTheoTrangThai']);
+    Route::get('/admin/thong-ke/top-san-pham-ban-chay', [ThongKeController::class, 'getTopSanPhamBanChay']);
+    Route::get('/admin/thong-ke/khach-hang-moi-theo-thoi-gian', [ThongKeController::class, 'getKhachHangMoiTheoThoiGian']);
+    Route::get('/admin/thong-ke/theo-danh-muc', [ThongKeController::class, 'getThongKeTheoDanhMuc']);
+    // Voucher
+    Route::get('/admin/voucher/data', [VoucherController::class, 'getData']);
+    Route::post('/admin/voucher/create', [VoucherController::class, 'store']);
+    Route::post('/admin/voucher/update', [VoucherController::class, 'update']);
+    Route::post('/admin/voucher/delete', [VoucherController::class, 'destroy']);
+    Route::post('/admin/voucher/change-status', [VoucherController::class, 'changeStatus']);
 });
 //Khách hàng
 Route::middleware(NhanVienMiddleware::class)->group(function () {
@@ -78,10 +99,7 @@ Route::middleware(NhanVienMiddleware::class)->group(function () {
     // Tạo sản phẩm mới
     Route::post('/admin/dang-san-pham/create', [SanPhamShopController::class, 'store']);
     
-    // Lấy danh sách sản phẩm với đầy đủ thông tin (cho giao diện đăng sản phẩm)
-    Route::get('/admin/san-pham/list', [SanPhamShopController::class, 'list']);
-    
-    // Lấy dữ liệu sản phẩm (tương tự list)
+    // Lấy dữ liệu sản phẩm (cho giao diện đăng sản phẩm)
     Route::get('/admin/san-pham/data', [SanPhamShopController::class, 'getData']);
     
     // Cập nhật sản phẩm
@@ -139,18 +157,32 @@ Route::middleware(NhanVienMiddleware::class)->group(function () {
 // ------------------------------------------CLIENT HOME PAGE-------------------------------------------
 // -----------------------------------------------------------------------------------------------------
 Route::get('/home-page/san-pham/data-open', [SanPhamShopController::class, 'getOpenData']);
-Route::get('/home-page/san-pham/chi-tiet-san-pham/{id}', [ChiTietSanPhamController::class, 'chiTietSanPham']);
+Route::get('/home-page/san-pham/ban-chay', [SanPhamShopController::class, 'getBestSellingProducts']);
+Route::get('/home-page/san-pham/chi-tiet-san-pham/{slug}', [ChiTietSanPhamController::class, 'chiTietSanPham']);
 Route::get('/home-page/san-pham/cung-danh-muc', [ChiTietSanPhamController::class, 'cungDanhMuc']);
+
+// Search API
+Route::get('/search/products', [SearchController::class, 'searchProducts']);
+Route::get('/search/products-paginated', [SearchController::class, 'searchProductsPaginated']);
+Route::get('/home-page/danh-muc/data-open', [DanhMucController::class, 'getPublicData']);
+
+// -----------------------------------------------------------------------------------------------------
+// --------------------------------------------VOUCHER (PUBLIC)-----------------------------------------
+// -----------------------------------------------------------------------------------------------------
+Route::get('/voucher/check', [VoucherController::class, 'getByCode']);
 
 // -----------------------------------------------------------------------------------------------------
 // --------------------------------------------KHACH HANG-----------------------------------------------
 // -----------------------------------------------------------------------------------------------------
 Route::get('/khach-hang/check-token', [KhachHangController::class, 'checkToken']);
 Route::post('/khach-hang/dang-nhap', [KhachHangController::class, 'login']);
+Route::post('/khach-hang/dang-ky', [KhachHangController::class, 'dangKy']);
 Route::get('/khach-hang/logout', [KhachHangController::class, 'logOut']);
 Route::post('/khach-hang/login-google', [KhachHangController::class, 'loginGoogle']);
 
 Route::get('/khach-hang/lay-thong-tin-profile', [KhachHangController::class, 'layThongTin'])->middleware('khachHangMiddle');
+Route::post('/khach-hang/update-profile', [KhachHangController::class, 'updateProfile'])->middleware('khachHangMiddle');
+Route::post('/khach-hang/change-password', [KhachHangController::class, 'changePassword'])->middleware('khachHangMiddle');
 //Địa chỉ
 Route::get('/khach-hang/dia-chi/get-tinh-thanh', [KhachHangController::class, 'getDataTinhThanh']);
 Route::post('/khach-hang/dia-chi/get-quan-huyen', [KhachHangController::class, 'getDataQuanHuyen']);
@@ -163,6 +195,7 @@ Route::get('/khach-hang/dia-chi/get-data', [KhachHangController::class, 'getData
 //Đặt hàng
 Route::post('/khach-hang/them-don-hang', [DonHangController::class, 'themDonHang'])->middleware('khachHangMiddle');
 Route::post('/khach-hang/get-data-don-hang', [DonHangController::class, 'layDonHang'])->middleware('khachHangMiddle');
+Route::post('/khach-hang/update-don-hang', [DonHangController::class, 'updateDonHang'])->middleware('khachHangMiddle');
 Route::post('/khach-hang/delete-don-hang/{id}', [DonHangController::class, 'destroyDonHang'])->middleware('khachHangMiddle');
 Route::post('/khach-hang/xac-nhan-dat-hang', [ThanhToanController::class, 'xacNhanDatHang'])->middleware('khachHangMiddle');
 Route::get('/khach-hang/get-don-hang', [DonHangController::class, 'getDonHang'])->middleware('khachHangMiddle');

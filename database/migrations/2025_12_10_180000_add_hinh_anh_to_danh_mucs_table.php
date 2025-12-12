@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('san_phams', function (Blueprint $table) {
-            $table->integer('giam_gia')->default(0)->after('gia_goc');
+        Schema::table('danh_mucs', function (Blueprint $table) {
+            $table->string('hinh_anh')->nullable()->after('ten_danh_muc');
         });
     }
 
@@ -21,8 +21,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('san_phams', function (Blueprint $table) {
-            $table->dropColumn('giam_gia');
+        Schema::table('danh_mucs', function (Blueprint $table) {
+            $table->dropColumn('hinh_anh');
         });
     }
 };
+

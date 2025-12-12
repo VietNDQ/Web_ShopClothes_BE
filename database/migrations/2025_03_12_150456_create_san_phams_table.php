@@ -13,13 +13,14 @@ return new class extends Migration
     {
         Schema::create('san_phams', function (Blueprint $table) {
             $table->id();
-            $table->integer('id_thuong_hieu');
             $table->integer('id_danh_muc');
+            $table->integer('id_nhan_vien');
             $table->string('ten_san_pham');
-            $table->string('slug_san_pham');
-            $table->float('gia_goc');
-            $table->text('mo_ta');
-            $table->boolean('tinh_trang');
+            $table->text('mo_ta')->nullable();
+            $table->bigInteger('gia_co_ban')->nullable(); // kiểu long
+            $table->integer('tinh_trang')->default(1);    // 1 = Mới, 0 = Cũ
+            $table->integer('trang_thai')->default(1);    // 1 = Hiển thị, 0 = Ẩn, 2 = Đã bán
+            $table->timestamp('ngay_dang')->useCurrent();
             $table->timestamps();
         });
     }
