@@ -2,21 +2,24 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class BienTheSanPham extends Model
 {
+    use HasFactory;
     protected $table = 'bien_the_san_phams';
 
     protected $fillable = [
         'id_san_pham',
-        'kich_thuoc',
+        'size',
         'mau_sac',
-        'chat_lieu',
-        'gia_nhap',
-        'gia_ban',
-        'so_luong_ton',
-        'tinh_trang',
+        'so_luong',
+        'gia',
     ];
-}
 
+    public function sanPham()
+    {
+        return $this->belongsTo(SanPham::class, 'id_san_pham');
+    }
+}

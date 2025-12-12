@@ -22,15 +22,19 @@ class DanhMucRequestCreate extends FormRequest
     public function rules(): array
     {
         return [
-            'ten_danh_muc'      =>'required',
-            'mo_ta'             =>'required',
+            'ten_danh_muc' => 'required|string|max:255',
+            'tinh_trang'   => 'nullable|integer|in:0,1',
         ];
     }
-    public function messages()
+
+    public function messages(): array
     {
         return [
-            'ten_danh_muc'      =>'Tên danh mục không được để trống',
-            'mo_ta'             =>'Mô tả không được để trống',
+            'ten_danh_muc.required' => 'Tên danh mục không được để trống',
+            'ten_danh_muc.string'   => 'Tên danh mục phải là chuỗi ký tự',
+            'ten_danh_muc.max'      => 'Tên danh mục không được vượt quá 255 ký tự',
+            'tinh_trang.integer'    => 'Tình trạng phải là số nguyên',
+            'tinh_trang.in'         => 'Tình trạng không hợp lệ (0 = Không hoạt động, 1 = Hoạt động)',
         ];
     }
 }

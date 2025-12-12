@@ -13,21 +13,23 @@ return new class extends Migration
     {
         Schema::create('don_hangs', function (Blueprint $table) {
             $table->id();
-            $table->string('ma_don_hang');
             $table->integer('id_khach_hang');
+            $table->string('ma_don_hang')->nullable();
             $table->integer('id_san_pham');
             $table->integer('so_luong');
+            $table->double('don_gia');
             $table->double('tong_tien');
+            $table->string('kich_thuoc');
+            $table->string('mau_sac');
             $table->text('ghi_chu')->nullable();
-
-            $table->integer('tinh_trang')->default(0); // 1: đã thanh toán, 0: chưa thanh toán
             $table->integer('trang_thai')->default(0);
+            $table->integer('id_nhan_vien')->nullable(); //Nhân viên xử lý đơn hàng
             // 0: giỏ hàng chưa đặt
-            // 1: đã đặt, chờ xác nhận
-            // 2: đang giao hàng
-            // 3: giao hàng thành công
-            // 4: giao hàng thất bại
-             $table->timestamp('ngay_dat')->nullable();
+            //   1: { admin: "Chờ xác nhận", customer: "Chờ xác nhận" },
+            //   2: { admin: "Đã giao cho đơn vị vận chuyển", customer: "Đã chuẩn bị hàng" },
+            //   3: { admin: "Đang giao hàng", customer: "Đang giao hàng" },
+            //   4: { admin: "Giao hàng thành công", customer: "Đã nhận hàng" },
+            //   5: { admin: "Giao hàng thất bại", customer: "Giao hàng thất bại" }
             $table->timestamps();
         });
     }

@@ -13,9 +13,11 @@ return new class extends Migration
     {
         Schema::create('hinh_anh_san_phams', function (Blueprint $table) {
             $table->id();
-            $table->integer('id_san_pham');
-            $table->string('hinh_anh')->nullable();
+            $table->unsignedBigInteger('id_san_pham');
+            $table->string('url');
             $table->timestamps();
+
+            $table->foreign('id_san_pham')->references('id')->on('san_phams')->onDelete('cascade');
         });
     }
 

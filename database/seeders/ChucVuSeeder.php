@@ -20,6 +20,11 @@ class ChucVuSeeder extends Seeder
         DB::table('chuc_vus')->truncate();
         DB::table('chuc_vus')->insert([
             [
+                'ten_chuc_vu'   => 'Quản trị viên',
+                'slug_chuc_vu'  => 'quan-tri-vien',
+                'created_at'    => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
+            ],
+            [
                 'ten_chuc_vu'   => 'Quản lý cửa hàng',
                 'slug_chuc_vu'  => 'quan-ly-cua-hang',
                 'created_at'    => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
@@ -30,18 +35,8 @@ class ChucVuSeeder extends Seeder
                 'created_at'    => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
             ],
             [
-                'ten_chuc_vu'   => 'Thu ngân',
-                'slug_chuc_vu'  => 'thu-ngan',
-                'created_at'    => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
-            ],
-            [
                 'ten_chuc_vu'   => 'Quản lý kho',
                 'slug_chuc_vu'  => 'quan-ly-kho',
-                'created_at'    => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
-            ],
-            [
-                'ten_chuc_vu'   => 'Nhân viên giao hàng',
-                'slug_chuc_vu'  => 'nhan-vien-giao-hang',
                 'created_at'    => Carbon::createFromTimestamp(rand($startDate->timestamp, $endDate->timestamp)),
             ],
             [

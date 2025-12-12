@@ -26,5 +26,10 @@ class KhachHang extends Authenticatable
         'hash_active',
         'hash_reset',
     ];
+
+    public function messages()
+{
+    return $this->morphMany(Message::class, 'sender');
+}
 }
 
