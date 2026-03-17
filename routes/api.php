@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\BienTheSanPhamController;
 use App\Http\Controllers\ChiTietPhanQuyenController;
 use App\Http\Controllers\ChiTietSanPhamController;
@@ -28,6 +29,8 @@ Route::get('/admin/check-token', [NhanVienController::class, 'checkToken']);
 Route::get('/admin/logout', [NhanVienController::class, 'logOut']);
 Route::post('/admin/phan-quyen/chuc-nang-nhan-vien', [ChucNangController::class, 'getChucNangTheoNhanVien'])->middleware('nhanVienMiddle');
 
+Route::post('/chatbox', [ChatController::class, 'handleChat']);
+
 //Nhân viên
 Route::middleware(NhanVienMiddleware::class)->group(function () {
     Route::get('/admin/nhan-vien/data', [NhanVienController::class, 'getData']);
@@ -39,7 +42,7 @@ Route::middleware(NhanVienMiddleware::class)->group(function () {
     // Đơn hàng
     Route::get('/admin/nhan-vien/get-don-hang', [NhanVienController::class, 'getDonHang']);
     Route::post('/admin/nhan-vien/xac-nhan-don-hang', [NhanVienController::class, 'xacNhanDonHang']);
-    
+
     // Profile nhân viên
     Route::get('/admin/nhan-vien/profile', [NhanVienController::class, 'layThongTinProfile']);
     Route::post('/admin/nhan-vien/update-profile', [NhanVienController::class, 'updateProfile']);
@@ -96,22 +99,11 @@ Route::middleware(NhanVienMiddleware::class)->group(function () {
 // SẢN PHẨM - Quản lý sản phẩm cho giao diện đăng sản phẩm
 // -----------------------------------------------------------------------------------------------------
 Route::middleware(NhanVienMiddleware::class)->group(function () {
-    // Tạo sản phẩm mới
     Route::post('/admin/dang-san-pham/create', [SanPhamShopController::class, 'store']);
-    
-    // Lấy dữ liệu sản phẩm (cho giao diện đăng sản phẩm)
     Route::get('/admin/san-pham/data', [SanPhamShopController::class, 'getData']);
-    
-    // Cập nhật sản phẩm
     Route::post('/admin/san-pham/update', [SanPhamShopController::class, 'update']);
-    
-    // Xóa sản phẩm
     Route::post('/admin/san-pham/delete', [SanPhamShopController::class, 'destroy']);
-    
-    // Tìm kiếm sản phẩm
     Route::post('/admin/san-pham/search', [SanPhamShopController::class, 'search']);
-    
-    // Thay đổi trạng thái sản phẩm
     Route::post('/admin/san-pham/change-status', [SanPhamShopController::class, 'changeStatus']);
 });
 //Biến thể
